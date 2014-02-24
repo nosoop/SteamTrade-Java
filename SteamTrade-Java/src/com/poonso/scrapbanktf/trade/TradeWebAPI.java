@@ -53,7 +53,7 @@ public class TradeWebAPI {
 
     public void removeItem(int appid, long contextid, long assetid) {
         final Map<String, String> data = new HashMap<>();
-        
+
         try {
             data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
         } catch (final UnsupportedEncodingException e) {
@@ -65,7 +65,7 @@ public class TradeWebAPI {
         data.put("itemid", "" + assetid);
         fetch(baseTradeURL + "removeitem", "POST", data);
     }
-    
+
     public String sendMessage(String message) {
         final Map<String, String> data = new HashMap<>();
         try {
@@ -77,7 +77,7 @@ public class TradeWebAPI {
 
         return fetch(baseTradeURL + "chat", "POST", data);
     }
-    
+
     protected String fetch(String url, String method, Map<String, String> data) {
         return fetch(url, method, data, true);
     }
@@ -93,7 +93,7 @@ public class TradeWebAPI {
         final String response = request(url, method, data, cookies);
         return response;
     }
-    
+
     // TODO patch up this thing too
     String request(String url, String method, Map<String, String> data, String cookies) {
         //String out = "";
@@ -118,10 +118,11 @@ public class TradeWebAPI {
             conn.setRequestProperty("Host", "steamcommunity.com");
             conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
             conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
-            
+
             // I don't know why, but we need a referer, otherwise we get a server error response.
+            // Just use our trade URL as the referer since we have it on hand.
             conn.setRequestProperty("Referer", baseTradeURL);
-            
+
             // Accept compressed responses.  (We can decompress it.)
             conn.setRequestProperty("Accept-Encoding", "gzip,deflate");
 
@@ -133,7 +134,7 @@ public class TradeWebAPI {
             if (method.equals("POST")) {
                 conn.setDoOutput(true);
                 final OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream());
-                os.write(dataString.substring(0, dataString.length()-1));
+                os.write(dataString.substring(0, dataString.length() - 1));
                 os.flush();
             }
 

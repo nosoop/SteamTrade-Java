@@ -73,6 +73,16 @@ public class TradeSession implements Runnable {
     private long timeTradeStarted, timeLastAction;
     private long steamIdSelf, steamIdPartner;
 
+    /**
+     *
+     * @param steamidSelf Long representation of our own SteamID.
+     * @param steamidPartner Long representation of our trading partner's
+     * SteamID.
+     * @param sessionId String value of the Base64-encoded session token.
+     * @param token String value of Steam's login token.
+     * @param listener Trade listener to respond to trade actions.
+     * @throws Exception
+     */
     @SuppressWarnings("LeakingThisInConstructor")
     public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) throws Exception {
         steamIdSelf = steamidSelf;
@@ -108,7 +118,9 @@ public class TradeSession implements Runnable {
     }
     public Status status = null;
 
-    // TODO Reduce polling rate, maybe shovel the routine into a thread.
+    /**
+     * Polls the TradeSession for updates.
+     */
     @SuppressWarnings("unchecked")
     public void run() {
         synchronized (pollLock2) {
@@ -180,6 +192,12 @@ public class TradeSession implements Runnable {
         }
     }
 
+    /**
+     * Handles received trade events and fires the appropriate event at the
+     * TradeListener defined in the constructor.
+     *
+     * @param evt Trade event being handled.
+     */
     private void handleTradeEvent(final TradeEvent evt) {
         // Drop the event if the event's steamid is not theirs.
         boolean isBot = !evt.steamid.equals(String.valueOf(steamIdPartner));
