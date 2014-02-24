@@ -42,8 +42,8 @@ public class TradeSession implements Runnable {
     public final Object pollLock = null;
     //
     // The items put up for offer.
-    // TODO Replace with TradeInternalItems, or make it an array of?
-    public Set<Long> myTradeOffer = new HashSet<>(), otherTradeOffer = new HashSet<>();
+    // TODO Make this my/other stuff into a struct.
+    public Set<TradeInternalItem> myTradeOffer = new HashSet<>(), otherTradeOffer = new HashSet<>();
     public Object[] trades;
     //
     // The inventories of both users.
@@ -250,7 +250,6 @@ public class TradeSession implements Runnable {
     private void eventUserAddedItem(TradeEvent evt) {
         boolean isBot = !evt.steamid.equals(String.valueOf(steamIdPartner));
 
-        ((Set<Long>) trades[isBot ? 0 : 1]).add(evt.assetid);
         if (!isBot) {
             if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
                 addForeignInventory(steamIdPartner, evt.appid, evt.contextid);
@@ -258,6 +257,15 @@ public class TradeSession implements Runnable {
             final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
+
+        // Add to internal tracking.
+        final TradeInternalInventories inv = isBot
+                ? myTradeInventories : otherUserTradeInventories;
+
+        final TradeInternalItem item =
+                inv.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
+
+        ((Set<TradeInternalItem>) trades[isBot ? 0 : 1]).add(item);
     }
 
     private void eventUserRemovedItem(TradeEvent evt) {
@@ -267,6 +275,13 @@ public class TradeSession implements Runnable {
             final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserRemoveItem(item);
         }
+
+        // Get the item from one of our inventories and remove.
+        final TradeInternalItem item =
+                (isBot ? myTradeInventories : otherUserTradeInventories)
+                .getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
+
+        ((Set<TradeInternalItem>) trades[isBot ? 0 : 1]).remove(item);
     }
 
     private void eventUserSetCurrencyAmount(TradeEvent evt) {
