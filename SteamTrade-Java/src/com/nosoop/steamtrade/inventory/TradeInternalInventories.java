@@ -1,6 +1,8 @@
 package com.nosoop.steamtrade.inventory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -87,5 +89,12 @@ public class TradeInternalInventories {
      */
     private AppContextPair getInventoryKey(int appid, long contextid) {
         return new AppContextPair(appid, contextid);
+    }
+    
+    /**
+     * @return A list of all available / known inventories held by this object.
+     */
+    public List<TradeInternalInventory> getInventories() {
+        return new ArrayList<>(gameInventories.values());
     }
 }
