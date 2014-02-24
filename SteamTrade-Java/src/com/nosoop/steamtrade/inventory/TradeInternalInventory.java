@@ -91,6 +91,10 @@ public class TradeInternalInventory {
             e.printStackTrace();
         }
     }
+    
+    public AppContextPair getAppContextPair() {
+        return new AppContextPair(appid, contextid);
+    }
 
     private int getClassIdForItemId(long itemid) {
         String i = itemid + "";
