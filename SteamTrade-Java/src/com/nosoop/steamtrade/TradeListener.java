@@ -46,7 +46,8 @@ public abstract class TradeListener {
     public abstract void onAfterInit();
 
     /**
-     * Called when the other person adds an item.
+     * Called when the other person adds an item. If this is an item from a new
+     * inventory, that inventory is loaded before this event is called.
      *
      * @param schemaItem
      * @param inventoryItem

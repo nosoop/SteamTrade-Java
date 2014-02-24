@@ -251,6 +251,10 @@ public class TradeSession implements Runnable {
         boolean isBot = !evt.steamid.equals(String.valueOf(steamIdPartner));
 
         if (!isBot) {
+            /**
+             * If this is the other user and we don't have their inventory yet,
+             * then we will load it.
+             */
             if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
                 addForeignInventory(steamIdPartner, evt.appid, evt.contextid);
             }
@@ -547,8 +551,8 @@ public class TradeSession implements Runnable {
                 conn.setRequestMethod(method);
                 System.setProperty("http.agent", "");
                 /**
-                 * Previous User-Agent String for reference:
-                 * "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam
+                 * Previous User-Agent String for reference: "Mozilla/5.0
+                 * (Windows; U; Windows NT 6.1; en-US; Valve Steam
                  * Client/1392853084; SteamTrade-Java Client; )
                  * AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166
                  * Safari/535.19"
