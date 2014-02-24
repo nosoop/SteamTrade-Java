@@ -39,7 +39,7 @@ public class TradeSession implements Runnable {
     public boolean meReady = false, otherReady = false;
     boolean tradeStarted = false;
     int lastEvent = 0;
-    public final Object pollLock = null;
+    public final Object pollLock = new Object();
     //
     // The items put up for offer.
     // TODO Make this my/other stuff into a struct.
@@ -310,7 +310,6 @@ public class TradeSession implements Runnable {
         myAppContextData = contexts;
     }
 
-    // TODO Reduce polling rate?
     protected Status getStatus() throws ParseException {
         final Map<String, String> data = new HashMap<>();
         try {
@@ -529,9 +528,7 @@ public class TradeSession implements Runnable {
             return response;
         }
 
-        // TODO patch up this thing too
         String request(String url, String method, Map<String, String> data, String cookies) {
-            //String out = "";
             boolean ajax = true;
             StringBuilder out = new StringBuilder();
             try {
@@ -549,7 +546,14 @@ public class TradeSession implements Runnable {
                 conn.setRequestProperty("Cookie", cookies);
                 conn.setRequestMethod(method);
                 System.setProperty("http.agent", "");
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
+                /**
+                 * Previous User-Agent String for reference:
+                 * "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam
+                 * Client/1392853084; SteamTrade-Java Client; )
+                 * AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166
+                 * Safari/535.19"
+                 */
+                conn.setRequestProperty("User-Agent", "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; SteamTrade-Java Client; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
                 conn.setRequestProperty("Host", "steamcommunity.com");
                 conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
                 conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
