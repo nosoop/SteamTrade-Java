@@ -296,8 +296,9 @@ public class TradeSession implements Runnable {
     }
 
     /**
-     * Helper method to fire off an error and tell the tradeListener that the 
+     * Helper method to fire off an error and tell the tradeListener that the
      * trade is done and/or wrecked.
+     *
      * @param errorCode The error value to fire.
      */
     private void fireEventError(int errorCode) {
@@ -619,8 +620,8 @@ public class TradeSession implements Runnable {
 }
 
 /**
- * Brutally scrapes the AppContextData JavaScript object from the trade page.
- * Without this, we would not know what inventories we have.
+ * Private class that brutally scrapes the AppContextData JavaScript object from
+ * the trade page. Without this, we would not know what inventories we have.
  *
  * @author nosoop
  */
