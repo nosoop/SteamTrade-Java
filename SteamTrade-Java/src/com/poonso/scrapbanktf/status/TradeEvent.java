@@ -4,7 +4,6 @@
  */
 package com.poonso.scrapbanktf.status;
 
-import java.util.EnumMap;
 import org.json.simple.JSONObject;
 
 /**
@@ -19,11 +18,36 @@ public class TradeEvent {
     public String text;
     public long contextid;
     public long assetid;
-    
     // Currency-based.
     public int amount;
-    
     JSONObject jsonObject;
+
+    /* Reference to trade action ID's
+     * 0 = Add item (itemid = "assetid")
+     * 1 = Remove item (itemid = "assetid")
+     * 2 = Toggle ready
+     * 3 = Toggle not ready
+     * 4 = ?
+     * 5 = ? - maybe some sort of cancel
+     * 6 = Add / remove currency.
+     *     (SK Crowns/CE fall into this, but other SK items do 
+     *     not.)
+     * 7 = Chat (message = "text")
+     * 8 = Updated variable count item?
+     *     (Other SK items fall into this, but on initial add it
+     *     uses action 0.)
+     */
+    public class TradeAction {
+
+        public static final int ITEM_ADDED = 0,
+                ITEM_REMOVED = 1,
+                READY_TOGGLED = 2,
+                READY_UNTOGGLED = 3,
+                // 4, 5
+                CURRENCY_CHANGED = 6,
+                MESSAGE_ADDED = 7,
+                STACKABLE_CHANGED = 8;
+    }
 
     public TradeEvent(JSONObject event) {
         jsonObject = event;
@@ -49,41 +73,8 @@ public class TradeEvent {
             amount = Integer.parseInt((String) event.get("amount"));
         }
     }
-    
+
     public JSONObject getJSONObject() {
         return jsonObject;
-    }
-    
-    public enum Type {
-        /* Trade Action ID's
-         * 0 = Add item (itemid = "assetid")
-         * 1 = Remove item (itemid = "assetid")
-         * 2 = Toggle ready
-         * 3 = Toggle not ready
-         * 4 = ?
-         * 5 = ? - maybe some sort of cancel
-         * 6 = Add / remove currency.
-         *     (SK Crowns/CE fall into this, but other SK items do 
-         *     not.)
-         * 7 = Chat (message = "text")
-         * 8 = Updated variable count item?
-         *     (Other SK items fall into this, but on initial add it
-         *     uses action 0.)
-         */
-        EItemAdded, EItemRemoved, EReady, EUnready,
-        ECurrencyModified, EChatMessage, EItemUpdated, EUndefined;
-    }
-    
-    private static final EnumMap<TradeEvent.Type,Integer> types;
-    static {
-        types = new EnumMap<>(TradeEvent.Type.class);
-        
-        types.put(Type.EItemAdded, 0);
-        types.put(Type.EItemRemoved, 1);
-        types.put(Type.EReady, 2);
-        types.put(Type.EUnready, 3);
-        types.put(Type.ECurrencyModified, 6);
-        types.put(Type.EChatMessage, 7);
-        types.put(Type.EItemUpdated, 8);
     }
 }
