@@ -17,26 +17,32 @@ import com.poonso.scrapbanktf.inventory.TradeInternalItem;
 import com.poonso.scrapbanktf.trade.TradeListener.TradeErrorCodes;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Object representing a session of a trade. (Changes: Renamed to TradeSession,
- * added support to cancel the trade, added onWelcome() support to notify the
- * listener that a trade is being opened, added support to load the other
- * person's inventory without ever touching the WebAPI, removed support of
- * loading inventories with the WebAPI, added ability to load any of the other
- * player's inventories.)
+ * Represents a session of a trade. (Changes: Renamed to TradeSession, added
+ * support to cancel the trade, added onWelcome() support to notify the listener
+ * that a trade is being opened, added support to load the other person's
+ * inventory without ever touching the WebAPI, removed support of loading
+ * inventories with the WebAPI, added ability to load any of the other player's
+ * inventories.)
  *
  * @author Top-Cat, nosoop
  */
 public class TradeSession implements Runnable {
 
     // Static properties
-    public static String SteamCommunityDomain = "steamcommunity.com";
-    public static String SteamTradeUrl = "http://steamcommunity.com/trade/%s/";
+    public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com";
+    public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
     // Generic Trade info
     public boolean meReady = false, otherReady = false;
     boolean tradeStarted = false;
@@ -45,18 +51,15 @@ public class TradeSession implements Runnable {
     //
     // The items put up for offer.
     // TODO Replace with TradeInternalItems, or make it an array of?
-    public Set<Long> MyTrade = new HashSet<>();
-    public Set<Long> OtherTrade = new HashSet<>();
+    public Set<Long> myTradeOffer = new HashSet<>(), otherTradeOffer = new HashSet<>();
     public Object[] trades;
     //
     // The inventories of both users.
-    public TradeInternalInventories otherUserTradeInventories;
-    public TradeInternalInventories myTradeInventories;
-    // 
+    public TradeInternalInventories otherUserTradeInventories, myTradeInventories;
     public List<AppContextPair> myAppContextData;
     //
     // Trade interfacing object.
-    protected TradeWebAPI tradeAPI;
+    private TradeCommands api;
     //
     // Internal properties needed for Steam API.
     protected String baseTradeURL;
@@ -88,7 +91,7 @@ public class TradeSession implements Runnable {
         steamIdSelf = steamidSelf;
         steamIdPartner = steamidPartner;
 
-        trades = new Object[]{MyTrade, OtherTrade};
+        trades = new Object[]{myTradeOffer, otherTradeOffer};
 
         this.sessionId = sessionId;
         steamLogin = token;
@@ -96,9 +99,9 @@ public class TradeSession implements Runnable {
         listener.trade = this;
         tradeListener = listener;
 
-        baseTradeURL = String.format(TradeSession.SteamTradeUrl, steamIdPartner);
+        baseTradeURL = String.format(TradeSession.STEAM_TRADE_URL, steamIdPartner);
 
-        tradeAPI = new TradeWebAPI(baseTradeURL, this.sessionId, steamLogin);
+        api = new TradeCommands(baseTradeURL, this.sessionId, steamLogin);
 
         myTradeInventories = new TradeInternalInventories();
         otherUserTradeInventories = new TradeInternalInventories();
@@ -315,104 +318,6 @@ public class TradeSession implements Runnable {
         myAppContextData = contexts;
     }
 
-    /**
-     * Submits a message into the current trade chat.
-     *
-     * @param msg Message to be sent.
-     * @return Server response to the chat message.
-     */
-    public final String sendMessage(String msg) {
-        final Map<String, String> data = new HashMap<>();
-        try {
-            data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        data.put("message", msg);
-        data.put("logpos", "" + logpos);
-        data.put("version", "" + version);
-        return fetch(baseTradeURL + "chat", "POST", data);
-    }
-
-    public void addItem(TradeInternalItem item, int slot) {
-        tradeAPI.addItem(item.appid, item.contextid, item.assetid, slot);
-    }
-
-    public void addItem(long itemid, int slot) {
-        tradeAPI.addItem(440, 2, itemid, slot);
-    }
-
-    public void removeItem(TradeInternalItem item) {
-        tradeAPI.removeItem(item.appid, item.contextid, item.assetid);
-    }
-
-    public void removeItem(long itemid) {
-        tradeAPI.removeItem(440, 2, itemid);
-    }
-
-    public boolean setReady(boolean ready) {
-        final Map<String, String> data = new HashMap<>();
-        try {
-            data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        data.put("ready", ready ? "true" : "false");
-        data.put("version", "" + version);
-        final String response = fetch(baseTradeURL + "toggleready", "POST", data);
-        try {
-            Status readyStatus = new Status((JSONObject) new JSONParser().parse(response));
-            if (readyStatus.success) {
-                if (readyStatus.trade_status == 0) {
-                    otherReady = readyStatus.them.ready;
-                    meReady = readyStatus.me.ready;
-                } else {
-                    meReady = true;
-                }
-                return meReady;
-            }
-        } catch (final ParseException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public JSONObject acceptTrade() throws ParseException {
-        final Map<String, String> data = new HashMap<>();
-        try {
-            data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        data.put("version", "" + version);
-        final String response = fetch(baseTradeURL + "confirm", "POST", data);
-
-        return (JSONObject) new JSONParser().parse(response);
-    }
-
-    /**
-     * Cancels the trade session as if we clicked the "Cancel Trade" button.
-     *
-     * @return Boolean value true if server responded as successful, false
-     * otherwise.
-     * @throws ParseException when there is an error in parsing the response.
-     */
-    public boolean cancelTrade() throws ParseException {
-        final Map<String, String> data = new HashMap();
-        try {
-            data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        final String response = fetch(baseTradeURL + "cancel", "POST", data);
-
-        if (response == null) {
-            return false;
-        }
-        return (boolean) ((JSONObject) new JSONParser().parse(response)).get("success");
-    }
-
     // TODO Reduce polling rate?
     protected Status getStatus() throws ParseException {
         final Map<String, String> data = new HashMap<>();
@@ -485,8 +390,234 @@ public class TradeSession implements Runnable {
         if (sendLoginData) {
             cookies = "sessionid=" + sessionId + "; steamLogin=" + steamLogin;
         }
-        final String response = tradeAPI.request(url, method, data, cookies);
+        final String response = api.request(url, method, data, cookies);
         return response;
+    }
+
+    /**
+     * Gets the commands associated with this trade session.
+     * @return TradeCommands object that handles the user-trade actions.
+     */
+    public TradeCommands getCmds() {
+        return api;
+    }
+
+    /**
+     * A utility class to hold all web-based 'fetch' actions when dealing with
+     * Steam Trade.
+     *
+     * @author nosoop
+     */
+    public class TradeCommands {
+
+        final String baseTradeURL;
+        final String sessionId;
+        final String steamLogin;
+
+        TradeCommands(String baseTradeURL, String sessionId, String steamLogin) {
+            this.baseTradeURL = baseTradeURL;
+            this.sessionId = sessionId;
+            this.steamLogin = steamLogin;
+        }
+
+        public void addItem(TradeInternalItem item, int slot) {
+            addItem(item.appid, item.contextid, item.assetid, slot);
+        }
+        
+        public void addItem(int appid, long contextid, long assetid, int slot) {
+            final Map<String, String> data = new HashMap<>();
+
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            data.put("appid", "" + appid);
+            data.put("contextid", "" + contextid);
+            data.put("itemid", "" + assetid);
+            data.put("slot", "" + slot);
+            fetch(baseTradeURL + "additem", "POST", data);
+        }
+
+        public void removeItem(TradeInternalItem item) {
+            removeItem(item.appid, item.contextid, item.assetid);
+        }
+
+        public void removeItem(int appid, long contextid, long assetid) {
+            final Map<String, String> data = new HashMap<>();
+
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            data.put("appid", "" + appid);
+            data.put("contextid", "" + contextid);
+            data.put("itemid", "" + assetid);
+            fetch(baseTradeURL + "removeitem", "POST", data);
+        }
+
+        public boolean setReady(boolean ready) {
+            final Map<String, String> data = new HashMap<>();
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            data.put("ready", ready ? "true" : "false");
+            data.put("version", "" + version);
+            final String response = fetch(baseTradeURL + "toggleready", "POST", data);
+            try {
+                Status readyStatus = new Status((JSONObject) new JSONParser().parse(response));
+                if (readyStatus.success) {
+                    if (readyStatus.trade_status == 0) {
+                        otherReady = readyStatus.them.ready;
+                        meReady = readyStatus.me.ready;
+                    } else {
+                        meReady = true;
+                    }
+                    return meReady;
+                }
+            } catch (final ParseException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        public JSONObject acceptTrade() throws ParseException {
+            final Map<String, String> data = new HashMap<>();
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            data.put("version", "" + version);
+            final String response = fetch(baseTradeURL + "confirm", "POST", data);
+
+            return (JSONObject) new JSONParser().parse(response);
+        }
+
+        /**
+         * Cancels the trade session as if we clicked the "Cancel Trade" button.
+         *
+         * @return True if server responded as successful, false otherwise.
+         * @throws ParseException when there is an error in parsing the
+         * response.
+         */
+        public boolean cancelTrade() throws ParseException {
+            final Map<String, String> data = new HashMap();
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+
+            final String response = fetch(baseTradeURL + "cancel", "POST", data);
+
+            if (response == null) {
+                return false;
+            }
+            return (boolean) ((JSONObject) new JSONParser().parse(response)).get("success");
+        }
+
+        public String sendMessage(String message) {
+            final Map<String, String> data = new HashMap<>();
+            try {
+                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+            } catch (final UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            data.put("message", message);
+
+            return fetch(baseTradeURL + "chat", "POST", data);
+        }
+
+        protected String fetch(String url, String method, Map<String, String> data) {
+            return fetch(url, method, data, true);
+        }
+
+        protected String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
+            String cookies = "";
+            if (sendLoginData) {
+                try {
+                    cookies = "sessionid=" + URLEncoder.encode(sessionId, "UTF-8") + "; steamLogin=" + steamLogin + ";";
+                } catch (UnsupportedEncodingException e) {
+                }
+            }
+            final String response = request(url, method, data, cookies);
+            return response;
+        }
+
+        // TODO patch up this thing too
+        String request(String url, String method, Map<String, String> data, String cookies) {
+            //String out = "";
+            boolean ajax = true;
+            StringBuilder out = new StringBuilder();
+            try {
+                String dataString = "";
+                if (data != null) {
+                    for (final String key : data.keySet()) {
+                        dataString += URLEncoder.encode(key, "UTF-8") + "=" + URLEncoder.encode(data.get(key), "UTF-8") + "&";
+                    }
+                }
+                if (!method.equals("POST")) {
+                    url += "?" + dataString;
+                }
+                final URL url2 = new URL(url);
+                final HttpURLConnection conn = (HttpURLConnection) url2.openConnection();
+                conn.setRequestProperty("Cookie", cookies);
+                conn.setRequestMethod(method);
+                System.setProperty("http.agent", "");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
+                conn.setRequestProperty("Host", "steamcommunity.com");
+                conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
+                conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
+
+                // I don't know why, but we need a referer, otherwise we get a server error response.
+                // Just use our trade URL as the referer since we have it on hand.
+                conn.setRequestProperty("Referer", baseTradeURL);
+
+                // Accept compressed responses.  (We can decompress it.)
+                conn.setRequestProperty("Accept-Encoding", "gzip,deflate");
+
+                if (ajax) {
+                    conn.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+                    conn.setRequestProperty("X-Prototype-Version", "1.7");
+                }
+
+                if (method.equals("POST")) {
+                    conn.setDoOutput(true);
+                    final OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream());
+                    os.write(dataString.substring(0, dataString.length() - 1));
+                    os.flush();
+                }
+
+                java.io.InputStream netStream = conn.getInputStream();
+
+                // If GZIPped response, then use the gzip decoder.
+                if (conn.getContentEncoding().contains("gzip")) {
+                    netStream = new java.util.zip.GZIPInputStream(netStream);
+                }
+
+                //cookies = conn.getHeaderField("Set-Cookie");
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(netStream));
+
+                String line; // Stores an individual line currently being read.
+                while ((line = reader.readLine()) != null) {
+                    if (out.length() > 0) {
+                        out.append('\n');
+                    }
+                    out.append(line);
+                }
+            } catch (final MalformedURLException e) {
+                e.printStackTrace();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+            return out.toString();
+        }
     }
 }
 
