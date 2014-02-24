@@ -17,9 +17,10 @@ public abstract class TradeListener {
                 PARTNER_TIMED_OUT = 4,
                 TRADE_FAILED = 5;
     }
-    
+
     /**
-     * Called when an error occurs during the trade.
+     * Called when an error occurs during the trade such that the trade is
+     * closed.
      *
      * @param eid The error code. Known values are defined in
      * TradeListener.TradeErrorCodes.
@@ -84,10 +85,13 @@ public abstract class TradeListener {
     public abstract void onNewVersion();
 
     /**
-     * Called once the trade finishes.
+     * Called once a trade has been made.
      */
-    public abstract void onComplete();
-    
-    
+    public abstract void onTradeSuccess();
+
+    /**
+     * Called once the trade has been closed for the client to begin cleaning
+     * up. Called immediately after a successful trade or trade error.
+     */
     public abstract void onTradeClosed();
 }
