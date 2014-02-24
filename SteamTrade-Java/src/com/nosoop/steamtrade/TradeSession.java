@@ -1,21 +1,10 @@
-package com.poonso.scrapbanktf.trade;
+package com.nosoop.steamtrade;
 
-import com.poonso.scrapbanktf.status.TradeEvent;
-import com.poonso.scrapbanktf.status.Status;
+import com.nosoop.steamtrade.status.*;
+import com.nosoop.steamtrade.TradeListener.TradeErrorCodes;
+import com.nosoop.steamtrade.inventory.*;
+import com.nosoop.steamtrade.status.TradeEvent.TradeAction;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import com.poonso.scrapbanktf.inventory.AppContextPair;
-import com.poonso.scrapbanktf.inventory.TradeInternalInventories;
-import com.poonso.scrapbanktf.inventory.TradeInternalItem;
-import com.poonso.scrapbanktf.status.TradeEvent.TradeAction;
-import com.poonso.scrapbanktf.trade.TradeListener.TradeErrorCodes;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,9 +14,16 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.*;
 
 /**
  * Represents a session of a trade. (Changes: Renamed to TradeSession, added
@@ -78,6 +74,7 @@ public class TradeSession implements Runnable {
     private long steamIdSelf, steamIdPartner;
 
     /**
+     * Starts a new trading session.
      *
      * @param steamidSelf Long representation of our own SteamID.
      * @param steamidPartner Long representation of our trading partner's

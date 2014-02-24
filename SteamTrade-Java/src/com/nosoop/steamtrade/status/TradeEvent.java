@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.poonso.scrapbanktf.status;
+package com.nosoop.steamtrade.status;
 
 import org.json.simple.JSONObject;
 

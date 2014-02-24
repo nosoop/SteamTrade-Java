@@ -1,4 +1,4 @@
-package com.poonso.scrapbanktf.status;
+package com.nosoop.steamtrade.status;
 
 import java.util.ArrayList;
 import java.util.List;

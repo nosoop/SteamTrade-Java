@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.poonso.scrapbanktf.inventory;
+package com.nosoop.steamtrade.inventory;
 
 import org.json.simple.JSONObject;
 

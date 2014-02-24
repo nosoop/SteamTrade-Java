@@ -1,4 +1,4 @@
-package com.poonso.scrapbanktf.inventory;
+package com.nosoop.steamtrade.inventory;
 
 import org.json.simple.JSONObject;
 

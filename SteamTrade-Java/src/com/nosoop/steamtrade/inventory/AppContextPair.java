@@ -1,4 +1,4 @@
-package com.poonso.scrapbanktf.inventory;
+package com.nosoop.steamtrade.inventory;
 
 /**
  * Represents an integer/long id pair for item inventories. Optionally allows a

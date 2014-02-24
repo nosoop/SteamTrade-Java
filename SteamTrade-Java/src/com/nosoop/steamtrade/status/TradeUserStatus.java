@@ -1,6 +1,5 @@
-package com.poonso.scrapbanktf.status;
+package com.nosoop.steamtrade.status;
 
-import com.poonso.scrapbanktf.trade.TradeAssetsObj;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.simple.JSONArray;

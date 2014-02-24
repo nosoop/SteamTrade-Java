@@ -1,6 +1,6 @@
-package com.poonso.scrapbanktf.trade;
+package com.nosoop.steamtrade;
 
-import com.poonso.scrapbanktf.inventory.TradeInternalItem;
+import com.nosoop.steamtrade.inventory.TradeInternalItem;
 
 public abstract class TradeListener {
 
