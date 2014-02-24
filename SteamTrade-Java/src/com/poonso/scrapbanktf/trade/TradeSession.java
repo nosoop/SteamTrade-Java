@@ -14,6 +14,7 @@ import org.json.simple.parser.ParseException;
 import com.poonso.scrapbanktf.inventory.AppContextPair;
 import com.poonso.scrapbanktf.inventory.TradeInternalInventories;
 import com.poonso.scrapbanktf.inventory.TradeInternalItem;
+import com.poonso.scrapbanktf.status.TradeEvent.TradeAction;
 import com.poonso.scrapbanktf.trade.TradeListener.TradeErrorCodes;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -125,6 +126,7 @@ public class TradeSession implements Runnable {
      * Polls the TradeSession for updates.
      */
     @SuppressWarnings("unchecked")
+    @Override
     public void run() {
         synchronized (pollLock2) {
             if (!tradeStarted) {
@@ -210,29 +212,14 @@ public class TradeSession implements Runnable {
             //System.out.println(Arrays.toString(status.them.assets.toArray()));
         }
 
-        /* Trade Action ID's
-         * 0 = Add item (itemid = "assetid")
-         * 1 = Remove item (itemid = "assetid")
-         * 2 = Toggle ready
-         * 3 = Toggle not ready
-         * 4 = ?
-         * 5 = ? - maybe some sort of cancel
-         * 6 = Add / remove currency.
-         *     (SK Crowns/CE fall into this, but other SK items do 
-         *     not.)
-         * 7 = Chat (message = "text")
-         * 8 = Updated variable count item?
-         *     (Other SK items fall into this, but on initial add it
-         *     uses action 0.)
-         */
         switch (evt.action) {
-            case 0:
+            case TradeAction.ITEM_ADDED:
                 eventUserAddedItem(evt);
                 break;
-            case 1:
+            case TradeAction.ITEM_REMOVED:
                 eventUserRemovedItem(evt);
                 break;
-            case 2:
+            case TradeAction.READY_TOGGLED:
                 if (!isBot) {
                     otherReady = true;
                     tradeListener.onUserSetReadyState(true);
@@ -240,7 +227,7 @@ public class TradeSession implements Runnable {
                     meReady = true;
                 }
                 break;
-            case 3:
+            case TradeAction.READY_UNTOGGLED:
                 if (!isBot) {
                     otherReady = false;
                     tradeListener.onUserSetReadyState(false);
@@ -253,7 +240,7 @@ public class TradeSession implements Runnable {
                     tradeListener.onUserAccept();
                 }
                 break;
-            case 7:
+            case TradeAction.MESSAGE_ADDED:
                 if (!isBot) {
                     tradeListener.onMessage(evt.text);
                 }
@@ -312,7 +299,7 @@ public class TradeSession implements Runnable {
         // I guess we're scraping the trade page.
         final Map<String, String> data = new HashMap<>();
 
-        String pageData = fetch(baseTradeURL, "GET", data);
+        String pageData = api.fetch(baseTradeURL, "GET", data);
         List<AppContextPair> contexts = ContextScraper.scrapeContextData(pageData);
 
         myAppContextData = contexts;
@@ -329,7 +316,7 @@ public class TradeSession implements Runnable {
         data.put("logpos", "" + logpos);
         data.put("version", "" + version);
 
-        final String response = fetch(baseTradeURL + "tradestatus/", "POST", data);
+        final String response = api.fetch(baseTradeURL + "tradestatus/", "POST", data);
 
         return new Status((JSONObject) new JSONParser().parse(response));
     }
@@ -350,7 +337,7 @@ public class TradeSession implements Runnable {
 
         url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", steamIdSelf, appContext.getAppid(), appContext.getContextid());
 
-        response = fetch(url, "GET", null, true);
+        response = api.fetch(url, "GET", null, true);
 
         myTradeInventories.addInventory(appContext, response);
     }
@@ -375,27 +362,14 @@ public class TradeSession implements Runnable {
         data.put("appid", appId + "");
         data.put("contextid", contextId + "");
 
-        String feed = fetch(baseTradeURL + "foreigninventory", "POST", data);
+        String feed = api.fetch(baseTradeURL + "foreigninventory", "POST", data);
 
         otherUserTradeInventories.addInventory(appId, contextId, feed);
     }
 
-    protected String fetch(String url, String method, Map<String, String> data) {
-        return fetch(url, method, data, true);
-    }
-
-    // TODO Make the web thingy a pluggable system?
-    protected String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
-        String cookies = "";
-        if (sendLoginData) {
-            cookies = "sessionid=" + sessionId + "; steamLogin=" + steamLogin;
-        }
-        final String response = api.request(url, method, data, cookies);
-        return response;
-    }
-
     /**
      * Gets the commands associated with this trade session.
+     *
      * @return TradeCommands object that handles the user-trade actions.
      */
     public TradeCommands getCmds() {
@@ -423,7 +397,7 @@ public class TradeSession implements Runnable {
         public void addItem(TradeInternalItem item, int slot) {
             addItem(item.appid, item.contextid, item.assetid, slot);
         }
-        
+
         public void addItem(int appid, long contextid, long assetid, int slot) {
             final Map<String, String> data = new HashMap<>();
 
