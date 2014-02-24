@@ -111,7 +111,7 @@ public class TradeSession implements Runnable {
 
             tradeListener.onAfterInit();
         } catch (final Exception e) {
-            tradeListener.onError(TradeErrorCodes.INITIALIZATION_ERROR);
+            fireEventError(TradeErrorCodes.INITIALIZATION_ERROR);
             e.printStackTrace();
             throw e;
         }
@@ -163,16 +163,17 @@ public class TradeSession implements Runnable {
 
             if (status.trade_status == 3) {
                 // One trader cancelled.  (Can't determine who from the status.)
-                tradeListener.onError(TradeErrorCodes.TRADE_CANCELLED);
+                fireEventError(TradeErrorCodes.TRADE_CANCELLED);
             } else if (status.trade_status == 4) {
                 // Other user timed out according to trade system.
-                tradeListener.onError(TradeErrorCodes.PARTNER_TIMED_OUT);
+                fireEventError(TradeErrorCodes.PARTNER_TIMED_OUT);
             } else if (status.trade_status == 5) {
                 // Trade failed.
-                tradeListener.onError(TradeErrorCodes.TRADE_FAILED);
+                fireEventError(TradeErrorCodes.TRADE_FAILED);
             } else if (status.trade_status == 1) {
                 // Trade successful.
-                tradeListener.onComplete();
+                tradeListener.onTradeSuccess();
+                tradeListener.onTradeClosed();
             }
 
             // Update Local Variables
@@ -286,6 +287,11 @@ public class TradeSession implements Runnable {
         // TODO Set support for currency?
         if (!isBot) {
         }
+    }
+    
+    private void fireEventError(int errorCode) {
+        tradeListener.onError(errorCode);
+        tradeListener.onTradeClosed();
     }
 
     /**
