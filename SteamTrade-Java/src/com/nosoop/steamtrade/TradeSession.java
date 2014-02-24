@@ -295,6 +295,11 @@ public class TradeSession implements Runnable {
         }
     }
 
+    /**
+     * Helper method to fire off an error and tell the tradeListener that the 
+     * trade is done and/or wrecked.
+     * @param errorCode The error value to fire.
+     */
     private void fireEventError(int errorCode) {
         tradeListener.onError(errorCode);
         tradeListener.onTradeClosed();
@@ -359,6 +364,11 @@ public class TradeSession implements Runnable {
      * @param contextId
      */
     protected synchronized void addForeignInventory(long otherId, int appId, long contextId) {
+        /**
+         * TODO Make the loading concurrent so it does not hang on large
+         * inventories. ... I'm looking at you, backpack.tf card swap bots. Not
+         * that that's a bad thing - it's just not a good thing.
+         */
         final Map<String, String> data = new HashMap<>();
 
         try {
