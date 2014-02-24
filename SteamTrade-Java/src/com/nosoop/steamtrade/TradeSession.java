@@ -26,12 +26,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
 /**
- * Represents a session of a trade. (Changes: Renamed to TradeSession, added
- * support to cancel the trade, added onWelcome() support to notify the listener
- * that a trade is being opened, added support to load the other person's
- * inventory without ever touching the WebAPI, removed support of loading
- * inventories with the WebAPI, added ability to load any of the other player's
- * inventories.)
+ * Represents a session of a trade.
  *
  * @author Top-Cat, nosoop
  */
@@ -44,7 +39,7 @@ public class TradeSession implements Runnable {
     public boolean meReady = false, otherReady = false;
     boolean tradeStarted = false;
     int lastEvent = 0;
-    public String pollLock2 = "";
+    public final Object pollLock = null;
     //
     // The items put up for offer.
     // TODO Replace with TradeInternalItems, or make it an array of?
@@ -85,7 +80,7 @@ public class TradeSession implements Runnable {
      * @throws Exception
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) throws Exception {
+    public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
         steamIdSelf = steamidSelf;
         steamIdPartner = steamidPartner;
 
@@ -104,18 +99,10 @@ public class TradeSession implements Runnable {
         myTradeInventories = new TradeInternalInventories();
         otherUserTradeInventories = new TradeInternalInventories();
 
-        try {
-            tradeListener.onWelcome();
+        tradeListener.onWelcome();
+        scrapeBackpackContexts();
 
-            scrapeBackpackContexts();
-
-            tradeListener.onAfterInit();
-        } catch (final Exception e) {
-            fireEventError(TradeErrorCodes.INITIALIZATION_ERROR);
-            e.printStackTrace();
-            throw e;
-        }
-
+        tradeListener.onAfterInit();
     }
     public Status status = null;
 
@@ -125,7 +112,7 @@ public class TradeSession implements Runnable {
     @SuppressWarnings("unchecked")
     @Override
     public void run() {
-        synchronized (pollLock2) {
+        synchronized (pollLock) {
             if (!tradeStarted) {
                 tradeStarted = true;
 
@@ -288,7 +275,7 @@ public class TradeSession implements Runnable {
         if (!isBot) {
         }
     }
-    
+
     private void fireEventError(int errorCode) {
         tradeListener.onError(errorCode);
         tradeListener.onTradeClosed();
