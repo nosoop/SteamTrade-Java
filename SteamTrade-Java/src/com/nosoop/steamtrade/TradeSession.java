@@ -107,7 +107,8 @@ public class TradeSession implements Runnable {
     public Status status = null;
 
     /**
-     * Polls the TradeSession for updates.
+     * Polls the TradeSession for updates. Suggested poll rate is once every
+     * second.
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -320,7 +321,13 @@ public class TradeSession implements Runnable {
         myAppContextData = contexts;
     }
 
-    protected Status getStatus() throws ParseException {
+    /**
+     * Fetches updates to the current trade.
+     *
+     * @return Status object to be processed.
+     * @throws ParseException Malformed / invalid response data.
+     */
+    private Status getStatus() throws ParseException {
         final Map<String, String> data = new HashMap<>();
         try {
             data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
@@ -397,7 +404,7 @@ public class TradeSession implements Runnable {
 
     /**
      * A utility class to hold all web-based 'fetch' actions when dealing with
-     * Steam Trade.
+     * Steam Trade in the current trading session.
      *
      * @author nosoop
      */
@@ -413,10 +420,24 @@ public class TradeSession implements Runnable {
             this.steamLogin = steamLogin;
         }
 
+        /**
+         * Adds an item to the trade.
+         *
+         * @param item The item, represented by an TradeInternalItem instance.
+         * @param slot The offer slot to place the item in (0~255).
+         */
         public void addItem(TradeInternalItem item, int slot) {
             addItem(item.appid, item.contextid, item.assetid, slot);
         }
 
+        /**
+         * Adds an item to the trade manually.
+         *
+         * @param appid The game inventory for the item.
+         * @param contextid The inventory "context" for the item.
+         * @param assetid The inventory "asset", the item id.
+         * @param slot The offer slot to place the item in (0~255).
+         */
         public void addItem(int appid, long contextid, long assetid, int slot) {
             final Map<String, String> data = new HashMap<>();
 
@@ -433,10 +454,22 @@ public class TradeSession implements Runnable {
             fetch(baseTradeURL + "additem", "POST", data);
         }
 
+        /**
+         * Removes an item from the trade.
+         *
+         * @param item The item, represented by an TradeInternalItem instance.
+         */
         public void removeItem(TradeInternalItem item) {
             removeItem(item.appid, item.contextid, item.assetid);
         }
 
+        /**
+         * Removes an item from the trade manually.
+         *
+         * @param appid The game inventory for the item.
+         * @param contextid The inventory "context" for the item.
+         * @param assetid The inventory "asset", the item id.
+         */
         public void removeItem(int appid, long contextid, long assetid) {
             final Map<String, String> data = new HashMap<>();
 
@@ -452,6 +485,13 @@ public class TradeSession implements Runnable {
             fetch(baseTradeURL + "removeitem", "POST", data);
         }
 
+        /**
+         * Tick / untick the checkbox signaling that we are ready to complete
+         * the trade.
+         *
+         * @param ready Whether the client is ready to trade or not
+         * @return True on success, false otherwise.
+         */
         public boolean setReady(boolean ready) {
             final Map<String, String> data = new HashMap<>();
             try {
@@ -479,6 +519,13 @@ public class TradeSession implements Runnable {
             return false;
         }
 
+        /**
+         * Hits the "Make Trade" button, finalizing the trade. Not sure what the
+         * response is for.
+         *
+         * @return JSONObject representing trade status.
+         * @throws ParseException if the response is unexpected.
+         */
         public JSONObject acceptTrade() throws ParseException {
             final Map<String, String> data = new HashMap<>();
             try {
@@ -494,6 +541,7 @@ public class TradeSession implements Runnable {
 
         /**
          * Cancels the trade session as if we clicked the "Cancel Trade" button.
+         * Expect a call of onError(TradeErrorCodes.TRADE_CANCELLED).
          *
          * @return True if server responded as successful, false otherwise.
          * @throws ParseException when there is an error in parsing the
@@ -515,6 +563,12 @@ public class TradeSession implements Runnable {
             return (boolean) ((JSONObject) new JSONParser().parse(response)).get("success");
         }
 
+        /**
+         * Adds a message to trade chat.
+         *
+         * @param message The message to add to trade chat.
+         * @return String representing server response
+         */
         public String sendMessage(String message) {
             final Map<String, String> data = new HashMap<>();
             try {
@@ -524,14 +578,34 @@ public class TradeSession implements Runnable {
             }
             data.put("message", message);
 
+            // TODO Make this into an object?
             return fetch(baseTradeURL + "chat", "POST", data);
         }
 
-        protected String fetch(String url, String method, Map<String, String> data) {
+        /**
+         * Requests a String representation of an online file.
+         *
+         * @param url Location to fetch.
+         * @param method "GET" or "POST"
+         * @param data The data to be added to the data stream or request
+         * params.
+         * @return The server's String response to the request.
+         */
+        String fetch(String url, String method, Map<String, String> data) {
             return fetch(url, method, data, true);
         }
 
-        protected String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
+        /**
+         * Requests a String representation of an online file (for Steam).
+         *
+         * @param url Location to fetch.
+         * @param method "GET" or "POST"
+         * @param data The data to be added to the data stream or request
+         * params.
+         * @param sendLoginData Whether or not to send login session data.
+         * @return The server's String response to the request.
+         */
+        String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
             String cookies = "";
             if (sendLoginData) {
                 try {
@@ -543,6 +617,17 @@ public class TradeSession implements Runnable {
             return response;
         }
 
+        /**
+         * Requests a String representation of an online file (for Steam).
+         *
+         * @param url Location to fetch.
+         * @param method "GET" or "POST"
+         * @param data The data to be added to the data stream or request
+         * params.
+         * @param cookies A string of cookie data to be added to the request
+         * headers.
+         * @return The server's String response to the request.
+         */
         String request(String url, String method, Map<String, String> data, String cookies) {
             boolean ajax = true;
             StringBuilder out = new StringBuilder();
@@ -561,6 +646,7 @@ public class TradeSession implements Runnable {
                 conn.setRequestProperty("Cookie", cookies);
                 conn.setRequestMethod(method);
                 System.setProperty("http.agent", "");
+
                 /**
                  * Previous User-Agent String for reference: "Mozilla/5.0
                  * (Windows; U; Windows NT 6.1; en-US; Valve Steam
@@ -569,6 +655,7 @@ public class TradeSession implements Runnable {
                  * Safari/535.19"
                  */
                 conn.setRequestProperty("User-Agent", "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; SteamTrade-Java Client; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
+                
                 conn.setRequestProperty("Host", "steamcommunity.com");
                 conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
                 conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
