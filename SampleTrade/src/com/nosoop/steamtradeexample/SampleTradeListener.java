@@ -45,10 +45,12 @@ public class SampleTradeListener extends TradeListener {
     }
 
     /**
-     * Event fired every time the trade session is polled for updates. I guess
-     * you could do the timekeeping yourself with onNewVersion() and whatnot.
+     * Event fired every time the trade session is polled for updates to notify
+     * the listener of how long we have been in the trade and how long it has
+     * been since the trade partner's last input.
      *
-     * This is mostly a remnant of the old ScrapBank.tf code.
+     * Taking this approach over letting the software writer make their own
+     * polling thread to keep things simple.
      *
      * @param secondsSinceAction
      * @param secondsSinceTrade
@@ -142,8 +144,8 @@ public class SampleTradeListener extends TradeListener {
     }
 
     /**
-     * I think this is an event called when the other user accepts the trade?
-     * I have no idea. Going to have to take a look again.
+     * I think this is an event called when the other user accepts the trade? I
+     * have no idea. Going to have to take a look again.
      */
     @Override
     public void onUserAccept() {
