@@ -117,8 +117,7 @@ public class TradeSession implements Runnable {
             if (!tradeStarted) {
                 tradeStarted = true;
 
-                timeTradeStarted = System.currentTimeMillis();
-                timeLastAction = System.currentTimeMillis();
+                timeLastAction = timeTradeStarted = System.currentTimeMillis();
             }
 
             try {
