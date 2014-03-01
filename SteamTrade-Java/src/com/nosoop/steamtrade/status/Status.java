@@ -46,7 +46,6 @@ public class Status {
                 JSONArray statusEvents = obj.optJSONArray("events");
                 
                 if (statusEvents != null) {
-                    System.out.println("Do have events.");
                     for (int i = 0; i < statusEvents.length(); i++) {
                         events.add(new TradeEvent(statusEvents.getJSONObject(i)));
                     }
