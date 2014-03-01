@@ -57,7 +57,7 @@ public class TradeEvent {
         action = Integer.parseInt(event.getString("action"));
         timestamp = event.getLong("timestamp");
         appid = event.getInt("appid");
-        text = event.getString("text");
+        text = event.optString("text");
 
         // contextid required for private inventory only.
         if (event.has("contextid")) {
