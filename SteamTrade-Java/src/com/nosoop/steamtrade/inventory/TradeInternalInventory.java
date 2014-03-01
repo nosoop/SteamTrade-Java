@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import java.util.Set;
+import org.json.*;
 
 /**
  * Represents a Steam user's inventory as displayed in trading and from viewing
@@ -49,45 +48,48 @@ public class TradeInternalInventory {
         inventoryValid = false;
 
         try {
-            json = (JSONObject) new JSONParser().parse(s);
+            json = new JSONObject(s);
+            
+            System.out.println(s);
 
-            if ((Boolean) json.get("success") == true) {
+            if (json.getBoolean("success")) {
                 inventoryValid = true;
-                if ((json.get("rgInventory")) instanceof JSONObject) {
-                    rgInventory = (JSONObject) (json.get("rgInventory"));
-                }
                 
-                if ((json.get("rgDescriptions")) instanceof JSONObject) {
-                    rgDescriptions = (JSONObject) (json.get("rgDescriptions"));
-                }
+                rgInventory = json.optJSONObject("rgInventory");
+                rgDescriptions = json.optJSONObject("rgDescriptions");
+                
                 inventoryItems = new ArrayList<>();
 
                 if (rgInventory != null) {
-                    for (final Object rgInventoryItem : rgInventory.keySet()) {
-                        generateInventoryItem(Long.parseLong((String) ((JSONObject) rgInventory.get(rgInventoryItem)).get("id")));
+                    for (final String rgInventoryItem : (Set<String>) rgInventory.keySet()) {
+                        generateInventoryItem(Long.parseLong((rgInventory.getJSONObject(rgInventoryItem)).getString("id")));
                     }
                 }
                 
                 // TODO Add support for currency.
                 /*if ((json.get("rgCurrency")) instanceof JSONObject) {
-                    rgCurrency = (JSONObject) (json.get("rgCurrency"));
+                    rgCurrency = (json.getJSONObject("rgCurrency"));
                     
                     Object rgCur = json.get("rgCurrency");
                     
                     for (final JSONObject rgCurrencyItem : (ArrayList<JSONObject>) rgCur) {
-                        generateCurrencyItem(Long.parseLong((String) ((JSONObject) rgCurrency.get(rgCurrencyItem)).get("id")));
+                        generateCurrencyItem(Long.parseLong((rgCurrency.getJSONObject(rgCurrencyItem)).getString("id")));
                     }
                 }*/
-                if (json.get("rgCurrency") instanceof HashMap<?, ?>) {
+                /*if (json.get("rgCurrency") instanceof HashMap<?, ?>) {
                     Iterator<Map.Entry<String, JSONObject>> iterator;
                     iterator = ((HashMap<String, JSONObject>) json.get("rgCurrency")).entrySet().iterator();
                     while (iterator.hasNext()) {
                         final Map.Entry<String, JSONObject> row = iterator.next();
                         generateCurrencyItem(Long.parseLong(row.getKey()));
                     }
+                }*/
+                rgCurrency = json.optJSONObject(s);
+                if (rgCurrency != null) {
+                    System.out.println(rgCurrency);
                 }
             }
-        } catch (ParseException e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
@@ -96,20 +98,20 @@ public class TradeInternalInventory {
         return new AppContextPair(appid, contextid);
     }
 
-    private int getClassIdForItemId(long itemid) {
+    private int getClassIdForItemId(long itemid) throws JSONException {
         String i = itemid + "";
 
-        return Integer.parseInt((String) ((JSONObject) rgInventory.get(i)).get("classid"));
+        return Integer.parseInt(rgInventory.getJSONObject(i).getString("classid"));
     }
 
-    private long getInstanceIdForItemId(long itemid) {
+    private long getInstanceIdForItemId(long itemid) throws JSONException {
         String i = itemid + "";
 
-        if (!((JSONObject) rgInventory.get(i)).containsKey("instanceid")) {
+        if (!rgInventory.getJSONObject(i).has("instanceid")) {
             return 0;
         }
 
-        return Long.parseLong((String) (((JSONObject) rgInventory.get(i)).get("instanceid")));
+        return Long.parseLong(rgInventory.getJSONObject(i).getString("instanceid"));
     }
 
     public List<TradeInternalItem> getItemList() {
@@ -128,26 +130,26 @@ public class TradeInternalInventory {
         return null;
     }
     
-    private void generateCurrencyItem(long currencyid) {
-        long classid = Long.parseLong((String) (rgCurrency.get(currencyid + "")));
+    private void generateCurrencyItem(long currencyid) throws JSONException {
+        long classid = Long.parseLong((rgCurrency.getString(currencyid + "")));
         int instanceid = 0; // ?
         
         String index = String.format("%d_%d", classid, instanceid);
         
-        TradeInternalCurrency generatedItem = new TradeInternalCurrency(currencyid, (JSONObject) rgDescriptions.get(index));
+        TradeInternalCurrency generatedItem = new TradeInternalCurrency(currencyid, rgDescriptions.getJSONObject(index));
         
         currencyItems.add(generatedItem);
     }
 
-    private void generateInventoryItem(long itemid) {
+    private void generateInventoryItem(long itemid) throws JSONException {
         int classid = getClassIdForItemId(itemid);
         long instanceid = getInstanceIdForItemId(itemid);
 
         String index = String.format("%d_%d", classid, instanceid);
 
-        long id = Long.parseLong((String) ((JSONObject) rgInventory.get(itemid + "")).get("id"));
+        long id = Long.parseLong((rgInventory.getJSONObject(itemid + "")).getString("id"));
 
-        TradeInternalItem generatedItem = new TradeInternalItem(id, (JSONObject) rgDescriptions.get(index));
+        TradeInternalItem generatedItem = new TradeInternalItem(id, rgDescriptions.getJSONObject(index));
 
         generatedItem.appid = this.appid;
         generatedItem.contextid = this.contextid;

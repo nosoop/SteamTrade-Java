@@ -4,7 +4,8 @@
  */
 package com.nosoop.steamtrade.inventory;
 
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -29,10 +30,10 @@ public class TradeInternalCurrency {
     public int appid;
     public long contextid;
 
-    TradeInternalCurrency(long id, JSONObject rgDescriptionItem) {
+    TradeInternalCurrency(long id, JSONObject rgDescriptionItem) throws JSONException {
 
-        marketName = (String) rgDescriptionItem.get("market_name");
-        displayName = (String) rgDescriptionItem.get("name");
+        marketName = rgDescriptionItem.getString("market_name");
+        displayName = rgDescriptionItem.getString("name");
         
         System.out.println("TradeInternalCurrency: Added " + displayName);
 

@@ -4,7 +4,8 @@
  */
 package com.nosoop.steamtrade.status;
 
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
@@ -19,13 +20,13 @@ public class TradeAssetsObj {
     
     long amount;
     
-    public TradeAssetsObj(JSONObject obj) {
-        this.appid = Integer.parseInt((String) obj.get("appid"));
-        this.contextid = Long.parseLong((String) obj.get("contextid"));
-        this.assetid = Long.parseLong((String) obj.get("assetid"));
+    public TradeAssetsObj(JSONObject obj) throws JSONException {
+        this.appid = Integer.parseInt(obj.getString("appid"));
+        this.contextid = Long.parseLong(obj.getString("contextid"));
+        this.assetid = Long.parseLong(obj.getString("assetid"));
         
-        if (obj.containsKey("amount")) {
-            this.amount = Long.parseLong((String) obj.get("amount"));
+        if (obj.has("amount")) {
+            this.amount = Long.parseLong(obj.getString("amount"));
         }
     }
     

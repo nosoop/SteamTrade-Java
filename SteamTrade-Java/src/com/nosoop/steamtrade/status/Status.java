@@ -2,8 +2,10 @@ package com.nosoop.steamtrade.status;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import org.json.JSONException;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 /**
  * Object representing current trade state. (No modifications.)
@@ -23,30 +25,32 @@ public class Status {
     public List<TradeEvent> events = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
-    public Status(JSONObject obj) {
-        success = (boolean) obj.get("success");
+    public Status(JSONObject obj) throws JSONException {
+        success = obj.getBoolean("success");
+        
         if (success) {
             error = "None";
-            trade_status = (long) obj.get("trade_status");
-
+            trade_status = obj.getLong("trade_status");
+            
             if (trade_status == 0) {
-                newversion = (boolean) obj.get("newversion");
-                version = (int) (long) obj.get("version");
-                if (obj.containsKey("logpos")) {
-                    logpos = (int) obj.get("logpos");
+                newversion = obj.getBoolean("newversion");
+                version = obj.getInt("version");
+                if (obj.has("logpos")) {
+                    logpos = obj.getInt("logpos");
                 }
                 
-                me = new TradeUserStatus((JSONObject) obj.get("me"));
-                them = new TradeUserStatus((JSONObject) obj.get("them"));
+                me = new TradeUserStatus(obj.getJSONObject("me"));
+                them = new TradeUserStatus(obj.getJSONObject("them"));
                 
-                if (obj.get("events") != null) {
-                    for (final JSONObject event : (ArrayList<JSONObject>) obj.get("events")) {
-                        events.add(new TradeEvent(event));
+                JSONObject statusEvents = obj.optJSONObject("events");
+                if (statusEvents != null) {
+                    for (final String event : (Set<String>) statusEvents.keySet()) {
+                        events.add(new TradeEvent(obj.getJSONObject("events").getJSONObject(event)));
                     }
                 }
             }
         } else {
-            error = (String) obj.get("error");
+            error = obj.getString("error");
         }
     }
 }

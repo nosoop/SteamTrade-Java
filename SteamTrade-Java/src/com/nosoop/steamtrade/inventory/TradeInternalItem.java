@@ -2,7 +2,8 @@ package com.nosoop.steamtrade.inventory;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Class representation of an item in a user's inventory.
@@ -38,11 +39,11 @@ public class TradeInternalItem {
     // TODO Implementation of stackable items.
     boolean stackable;
 
-    TradeInternalItem(long assetid, JSONObject rgDescriptionItem) {
-        JSONObject appData = (JSONObject) (rgDescriptionItem.get("app_data"));
+    TradeInternalItem(long assetid, JSONObject rgDescriptionItem) throws JSONException {
+        JSONObject appData = rgDescriptionItem.optJSONObject("app_data");
 
-        this.marketName = (String) rgDescriptionItem.get("market_name");
-        this.displayName = (String) rgDescriptionItem.get("name");
+        this.marketName = rgDescriptionItem.getString("market_name");
+        this.displayName = rgDescriptionItem.getString("name");
 
         this.wasGifted = false;
 
@@ -50,12 +51,12 @@ public class TradeInternalItem {
         level = (byte) -1;
 
         if (appData != null) {
-            if (appData.containsKey("def_index")) {
-                defIndex = Integer.parseInt((String) appData.get("def_index"));
+            if (appData.has("def_index")) {
+                defIndex = Integer.parseInt(appData.getString("def_index"));
             }
 
-            if (appData.containsKey("quality")) {
-                quality = (byte) Integer.parseInt((String) appData.get("quality"));
+            if (appData.has("quality")) {
+                quality = (byte) Integer.parseInt(appData.getString("quality"));
             }
         }
 
@@ -72,7 +73,7 @@ public class TradeInternalItem {
         if (descs != null && descs instanceof ArrayList<?>) {
             for (final JSONObject descriptionItem : (ArrayList<JSONObject>) descs) {
                 // TODO Make this language independent?
-                String descriptionValue = (String) descriptionItem.get("value");
+                String descriptionValue = descriptionItem.getString("value");
                 
                 if (descriptionValue.contains("Gift from")) {
                     wasGifted = true;
@@ -82,8 +83,8 @@ public class TradeInternalItem {
 
         isRenamed = (!marketName.equals(displayName) && displayName.matches("''.*''"));
 
-        isTradable = rgDescriptionItem.containsKey("tradable")
-                ? rgDescriptionItem.get("tradable") == 1 : false;
+        isTradable = rgDescriptionItem.has("tradable")
+                ? rgDescriptionItem.getInt("tradable") == 1 : false;
     }
     // TODO Add method to return overridable name instead of using basic display?
 }

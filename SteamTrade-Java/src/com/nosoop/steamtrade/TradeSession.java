@@ -22,8 +22,7 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.*;
+import org.json.*;
 
 /**
  * Represents a session of a trade.
@@ -119,15 +118,22 @@ public class TradeSession implements Runnable {
 
                 timeLastAction = timeTradeStarted = System.currentTimeMillis();
             }
+            System.out.println("Did a thing.");
 
             try {
                 status = getStatus();
-            } catch (final ParseException e) {
+            } catch (final JSONException e) {
                 e.printStackTrace();
                 tradeListener.onError(1);
-                return;
+                
+                try {
+                    api.cancelTrade();
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                }
+                tradeListener.onTradeClosed();
             }
-
+            
             // Update version
             if (status.newversion) {
                 version = status.version;
@@ -324,9 +330,9 @@ public class TradeSession implements Runnable {
      * Fetches updates to the current trade.
      *
      * @return Status object to be processed.
-     * @throws ParseException Malformed / invalid response data.
+     * @throws JSONException Malformed / invalid response data.
      */
-    private Status getStatus() throws ParseException {
+    private Status getStatus() throws JSONException {
         final Map<String, String> data = new HashMap<>();
         try {
             data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
@@ -338,7 +344,7 @@ public class TradeSession implements Runnable {
 
         final String response = api.fetch(baseTradeURL + "tradestatus/", "POST", data);
 
-        return new Status((JSONObject) new JSONParser().parse(response));
+        return new Status(new JSONObject(response));
     }
 
     /**
@@ -502,7 +508,7 @@ public class TradeSession implements Runnable {
             data.put("version", "" + version);
             final String response = fetch(baseTradeURL + "toggleready", "POST", data);
             try {
-                Status readyStatus = new Status((JSONObject) new JSONParser().parse(response));
+                Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
                     if (readyStatus.trade_status == 0) {
                         otherReady = readyStatus.them.ready;
@@ -512,7 +518,7 @@ public class TradeSession implements Runnable {
                     }
                     return meReady;
                 }
-            } catch (final ParseException e) {
+            } catch (final JSONException e) {
                 e.printStackTrace();
             }
             return false;
@@ -523,9 +529,9 @@ public class TradeSession implements Runnable {
          * response is for.
          *
          * @return JSONObject representing trade status.
-         * @throws ParseException if the response is unexpected.
+         * @throws JSONException if the response is unexpected.
          */
-        public JSONObject acceptTrade() throws ParseException {
+        public JSONObject acceptTrade() throws JSONException {
             final Map<String, String> data = new HashMap<>();
             try {
                 data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
@@ -535,7 +541,7 @@ public class TradeSession implements Runnable {
             data.put("version", "" + version);
             final String response = fetch(baseTradeURL + "confirm", "POST", data);
 
-            return (JSONObject) new JSONParser().parse(response);
+            return new JSONObject(response);
         }
 
         /**
@@ -543,10 +549,9 @@ public class TradeSession implements Runnable {
          * Expect a call of onError(TradeErrorCodes.TRADE_CANCELLED).
          *
          * @return True if server responded as successful, false otherwise.
-         * @throws ParseException when there is an error in parsing the
-         * response.
+         * @throws JSONException when there is an error in parsing the response.
          */
-        public boolean cancelTrade() throws ParseException {
+        public boolean cancelTrade() throws JSONException {
             final Map<String, String> data = new HashMap();
             try {
                 data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
@@ -559,7 +564,7 @@ public class TradeSession implements Runnable {
             if (response == null) {
                 return false;
             }
-            return (boolean) ((JSONObject) new JSONParser().parse(response)).get("success");
+            return (boolean) (new JSONObject(response)).get("success");
         }
 
         /**
@@ -654,7 +659,7 @@ public class TradeSession implements Runnable {
                  * Safari/535.19"
                  */
                 conn.setRequestProperty("User-Agent", "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; SteamTrade-Java Client; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
-                
+
                 conn.setRequestProperty("Host", "steamcommunity.com");
                 conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
                 conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
@@ -767,30 +772,34 @@ class ContextScraper {
         List<AppContextPair> result = new ArrayList<>();
 
         try {
-            JSONObject feedData = (JSONObject) (new JSONParser()).parse(json);
+            JSONObject feedData = new JSONObject(json);
 
-            for (JSONObject o : (Collection<JSONObject>) feedData.values()) {
-                String gameName = (String) o.get("name");
-                int appid = (int) (long) o.get("appid");
+            for (String on : (Set<String>) feedData.keySet()) {
+                JSONObject o = feedData.getJSONObject(on);
+                if (o != null) {
+                    String gameName = o.getString("name");
+                    int appid = o.getInt("appid");
 
-                JSONObject contextData = (JSONObject) o.get("rgContexts");
+                    JSONObject contextData = o.getJSONObject("rgContexts");
 
-                for (JSONObject b : (Collection<JSONObject>) contextData.values()) {
-                    String contextName = (String) b.get("name");
-                    long contextid = Long.parseLong((String) b.get("id"));
-                    int assetCount = (int) (long) b.get("asset_count");
+                    for (String bn : (Set<String>) contextData.keySet()) {
+                        JSONObject b = contextData.getJSONObject(bn);
+                        String contextName = b.getString("name");
+                        long contextid = Long.parseLong(b.getString("id"));
+                        int assetCount = b.getInt("asset_count");
 
-                    // "Team Fortress 2 - Backpack (226)"
-                    String invNameFormat = String.format("%s - %s (%d)", gameName, contextName, assetCount);
+                        // "Team Fortress 2 - Backpack (226)"
+                        String invNameFormat = String.format("%s - %s (%d)", gameName, contextName, assetCount);
 
-                    // Only include the inventory if it's not empty.
-                    if (assetCount > 0) {
-                        result.add(new AppContextPair(appid, contextid, invNameFormat));
+                        // Only include the inventory if it's not empty.
+                        if (assetCount > 0) {
+                            result.add(new AppContextPair(appid, contextid, invNameFormat));
+                        }
                     }
                 }
             }
             return result;
-        } catch (ParseException pe) {
+        } catch (JSONException pe) {
             pe.printStackTrace();
         }
         return result;
