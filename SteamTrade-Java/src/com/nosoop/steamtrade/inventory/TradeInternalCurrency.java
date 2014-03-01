@@ -31,11 +31,8 @@ public class TradeInternalCurrency {
     public long contextid;
 
     TradeInternalCurrency(long id, JSONObject rgDescriptionItem) throws JSONException {
-
         marketName = rgDescriptionItem.getString("market_name");
         displayName = rgDescriptionItem.getString("name");
-        
-        System.out.println("TradeInternalCurrency: Added " + displayName);
 
         this.id = id;
 
