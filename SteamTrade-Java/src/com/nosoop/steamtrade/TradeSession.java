@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.json.*;
 
@@ -118,7 +117,6 @@ public class TradeSession implements Runnable {
 
                 timeLastAction = timeTradeStarted = System.currentTimeMillis();
             }
-            System.out.println("Did a thing.");
 
             try {
                 status = getStatus();
