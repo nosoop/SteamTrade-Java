@@ -4,40 +4,23 @@
  */
 package com.nosoop.steamtrade.inventory;
 
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  *
  * @author nosoop
  */
-public class TradeInternalCurrency {
+public class TradeInternalCurrency extends TradeInternalItem {
 
-    public boolean isRenamed;
+    int amount;
     
-    /**
-     * The display name of the item. If the item was renamed (as it could be in
-     * TF2, it will be that name.
-     */
-    public String displayName;
+    TradeInternalCurrency(long id, JSONObject rgDescriptionItem) throws JSONException {
+        super(id, rgDescriptionItem);
+    }
     
-    /**
-     * The name it would be grouped under in the Steam Community Market. Is
-     * blank if not in the Market.
-     */
-    public String marketName;
-    public long id;
-    public int appid;
-    public long contextid;
-
-    TradeInternalCurrency(long id, JSONObject rgDescriptionItem) {
-
-        marketName = (String) rgDescriptionItem.get("market_name");
-        displayName = (String) rgDescriptionItem.get("name");
-        
-        System.out.println("TradeInternalCurrency: Added " + displayName);
-
-        this.id = id;
-
+    public int getAmount() {
+        return amount;
     }
     // TODO Add method to return overridable name instead of using basic display.
 }

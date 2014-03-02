@@ -4,7 +4,8 @@
  */
 package com.nosoop.steamtrade.status;
 
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author nosoop
@@ -49,28 +50,28 @@ public class TradeEvent {
                 STACKABLE_CHANGED = 8;
     }
 
-    public TradeEvent(JSONObject event) {
+    public TradeEvent(JSONObject event) throws JSONException {
         jsonObject = event;
 
-        steamid = (String) event.get("steamid");
-        action = Integer.parseInt((String) event.get("action"));
-        timestamp = (long) event.get("timestamp");
-        appid = (int) (long) event.get("appid");
-        text = (String) event.get("text");
+        steamid = event.getString("steamid");
+        action = Integer.parseInt(event.getString("action"));
+        timestamp = event.getLong("timestamp");
+        appid = event.getInt("appid");
+        text = event.optString("text");
 
         // contextid required for private inventory only.
-        if (event.containsKey("contextid")) {
-            contextid = Long.valueOf((String) event.get("contextid"));
+        if (event.has("contextid")) {
+            contextid = Long.valueOf(event.getString("contextid"));
         }
 
         // assetid required for getting item info from public inventory.
-        if (event.containsKey("assetid")) {
-            assetid = Long.valueOf((String) event.get("assetid"));
+        if (event.has("assetid")) {
+            assetid = Long.valueOf(event.getString("assetid"));
         }
 
         // amount required when dealing in currency
-        if (event.containsKey("amount")) {
-            amount = Integer.parseInt((String) event.get("amount"));
+        if (event.has("amount")) {
+            amount = Integer.parseInt(event.getString("amount"));
         }
     }
 

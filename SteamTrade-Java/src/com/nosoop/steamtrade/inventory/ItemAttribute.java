@@ -1,6 +1,7 @@
 package com.nosoop.steamtrade.inventory;
 
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Class that holds individual item attributes.
@@ -15,12 +16,12 @@ public class ItemAttribute {
     public float floatValue;
     public String value;
 
-    ItemAttribute(JSONObject obj) {
-        defIndex = (short) (long) obj.get("defindex");
-        value = String.valueOf(obj.get("value"));
+    ItemAttribute(JSONObject obj) throws JSONException {
+        defIndex = (short) obj.getInt("defindex");
+        value = obj.getString("value");
         
-        if (obj.containsKey("float_value")) {
-            floatValue = (float) (double) obj.get("float_value");
+        if (obj.has("float_value")) {
+            floatValue = (float) obj.getDouble("float_value");
         }
     }
 }

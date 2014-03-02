@@ -2,8 +2,9 @@ package com.nosoop.steamtrade.status;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Represents user status in trade.
@@ -17,18 +18,19 @@ public class TradeUserStatus {
     public int sec_since_touch;
     public List<TradeAssetsObj> assets;
 
-    public TradeUserStatus(JSONObject obj) {
-        ready = (long) obj.get("ready") == 1;
-        confirmed = (long) obj.get("confirmed") == 1;
-        sec_since_touch = (int) (long) obj.get("sec_since_touch");
-
+    public TradeUserStatus(JSONObject obj) throws JSONException {
+        ready = obj.getLong("ready") == 1;
+        confirmed = obj.getLong("confirmed") == 1;
+        sec_since_touch = obj.getInt("sec_since_touch");
+        
         // TODO Add asset support to update variable-item quantities.
-        Object assetsRef = obj.get("assets");
+        JSONArray assetsRef = obj.optJSONArray("assets");
 
-        if (assetsRef instanceof JSONArray) {
+        if (assetsRef != null) {
             assets = new ArrayList<>();
-
-            for (Object asset : ((JSONArray) assetsRef).toArray()) {
+            
+            for (int i = 0; i < assetsRef.length(); i++) {
+                JSONObject asset = assetsRef.optJSONObject(i);
                 assets.add(new TradeAssetsObj((JSONObject) asset));
             }
         }
