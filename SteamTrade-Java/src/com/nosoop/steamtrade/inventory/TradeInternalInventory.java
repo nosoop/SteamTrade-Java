@@ -18,15 +18,11 @@ import org.json.*;
 public class TradeInternalInventory {
 
     boolean inventoryValid;
-    //JSONObject json;
-    JSONObject rgInventory = null;
-    JSONObject rgCurrency = null;
     List<TradeInternalItem> inventoryItems;
     // Debating on implementation for currency items.
     List<TradeInternalCurrency> currencyItems;
     int appid;
     long contextid;
-    private Map<ClassInstancePair, JSONObject> descriptions;
 
     // {"amount":"12","timestamp":1376049909,"steamid":"76561198006980102","currencyid":"2","old_amount":"0","action":"6","appid":99900,"contextid":"4296569382"}
     // myInternalInventory.getInventory(99900, 4296569382).getCurrency(int currencyid); ??
@@ -76,21 +72,20 @@ public class TradeInternalInventory {
     }
 
     /**
-     * Helper method to parse out 
-     * @throws JSONException 
+     * Helper method to parse out the JSON inventory format.
+     *
+     * @param json JSONObject representing inventory to be parsed.
+     * @throws JSONException
      */
-    private void parseInventory(JSONObject json) throws JSONException {
+    private void parseInventory(final JSONObject json) throws JSONException {
         inventoryValid = true;
-
-        rgInventory = json.optJSONObject("rgInventory");
-        JSONObject rgDescriptions = json.optJSONObject("rgDescriptions");
 
         inventoryItems = new ArrayList<>();
         currencyItems = new ArrayList<>();
 
-        descriptions = new HashMap<>();
-
         // Convenience map to associate class/instance to description.
+        Map<ClassInstancePair, JSONObject> descriptions = new HashMap<>();
+        JSONObject rgDescriptions = json.optJSONObject("rgDescriptions");
         for (final String rgDescriptionKey : (Set<String>) rgDescriptions.keySet()) {
             JSONObject rgDescriptionItem =
                     rgDescriptions.getJSONObject(rgDescriptionKey);
@@ -102,12 +97,12 @@ public class TradeInternalInventory {
                     rgDescriptionItem);
         }
 
-        /**
-         * Add non-currency items.
-         */
+        // Add non-currency items.
+        JSONObject rgInventory = json.optJSONObject("rgInventory");
         if (rgInventory != null) {
             for (final String rgInventoryItem : (Set<String>) rgInventory.keySet()) {
-                JSONObject invInstance = rgInventory.getJSONObject(rgInventoryItem);
+                JSONObject invInstance =
+                        rgInventory.getJSONObject(rgInventoryItem);
 
                 ClassInstancePair itemCI = new ClassInstancePair(
                         Integer.parseInt(invInstance.getString("classid")),
@@ -125,20 +120,28 @@ public class TradeInternalInventory {
             }
         }
 
-        rgCurrency = json.optJSONObject("rgCurrency");
+        // Add currency items
+        JSONObject rgCurrency = json.optJSONObject("rgCurrency");
         if (rgCurrency != null) {
             for (final String rgCurrencyItem : (Set<String>) rgCurrency.keySet()) {
-                JSONObject invInstance = 
+                JSONObject invInstance =
                         rgCurrency.getJSONObject(rgCurrencyItem);
 
                 ClassInstancePair itemCI = new ClassInstancePair(
                         Integer.parseInt(invInstance.getString("classid")),
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
-                TradeInternalCurrency generatedItem = new TradeInternalCurrency(
-                        Integer.parseInt(invInstance.getString("id")), descriptions.get(itemCI));
+                TradeInternalCurrency generatedItem =
+                        new TradeInternalCurrency(
+                        Integer.parseInt(invInstance.getString("id")),
+                        descriptions.get(itemCI));
 
-                currencyItems.add(generatedItem);
+                generatedItem.appid = this.appid;
+                generatedItem.contextid = this.contextid;
+
+                generatedItem.amount = invInstance.getInt("amount");
+
+                inventoryItems.add(generatedItem);
             }
         }
     }
