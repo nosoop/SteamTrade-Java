@@ -85,7 +85,7 @@ public class TradeSession implements Runnable {
 
         trades = new Object[]{myTradeOffer, otherTradeOffer};
 
-        this.SESSION_ID = sessionId;
+        SESSION_ID = sessionId;
         STEAM_LOGIN = token;
 
         listener.trade = this;
@@ -93,7 +93,7 @@ public class TradeSession implements Runnable {
 
         TRADE_URL = String.format(TradeSession.STEAM_TRADE_URL, STEAMID_PARTNER);
 
-        API = new TradeCommands(TRADE_URL, this.SESSION_ID, STEAM_LOGIN);
+        API = new TradeCommands(TRADE_URL, SESSION_ID, STEAM_LOGIN);
 
         myTradeInventories = new TradeInternalInventories();
         otherUserTradeInventories = new TradeInternalInventories();
@@ -123,8 +123,8 @@ public class TradeSession implements Runnable {
                 status = getStatus();
             } catch (final JSONException e) {
                 e.printStackTrace();
-                tradeListener.onError(1);
-                
+                tradeListener.onError(TradeStatusCodes.STATUS_PARSE_ERROR);
+
                 try {
                     API.cancelTrade();
                 } catch (JSONException ex) {
@@ -132,7 +132,7 @@ public class TradeSession implements Runnable {
                 }
                 tradeListener.onTradeClosed();
             }
-            
+
             // Update version
             if (status.newversion) {
                 version = status.version;
@@ -153,21 +153,13 @@ public class TradeSession implements Runnable {
                 tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
             }
 
-            System.out.println(status.trade_status);
-            
-            if (status.trade_status == 3) {
-                // One trader cancelled.  (Can't determine who from the status.)
-                fireEventError(TradeStatusCodes.TRADE_CANCELLED);
-            } else if (status.trade_status == 4) {
-                // Other user timed out according to trade system.
-                fireEventError(TradeStatusCodes.PARTNER_TIMED_OUT);
-            } else if (status.trade_status == 5) {
-                // Trade failed.
-                fireEventError(TradeStatusCodes.TRADE_FAILED);
-            } else if (status.trade_status == 1) {
+            if (status.trade_status == 1) {
                 // Trade successful.
                 tradeListener.onTradeSuccess();
                 tradeListener.onTradeClosed();
+            } else if (status.trade_status > 1) {
+                // Refer to TradeListener.TradeStatusCodes for known values.
+                fireEventError(status.trade_status);
             }
 
             // Update Local Variables
@@ -303,7 +295,7 @@ public class TradeSession implements Runnable {
                 addForeignInventory(STEAMID_PARTNER, evt.appid, evt.contextid);
             }
             final TradeInternalCurrency item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
-            
+
             // TODO Fire event at listener for currency update.
         }
     }
@@ -328,9 +320,14 @@ public class TradeSession implements Runnable {
         final Map<String, String> data = new HashMap<>();
 
         String pageData = API.fetch(TRADE_URL, "GET", data);
-        List<AppContextPair> contexts = ContextScraper.scrapeContextData(pageData);
 
-        myAppContextData = contexts;
+        try {
+            List<AppContextPair> contexts = ContextScraper.scrapeContextData(pageData);
+            myAppContextData = contexts;
+        } catch (JSONException e) {
+            myAppContextData = new ArrayList<>();
+            tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR);
+        }
     }
 
     /**
@@ -743,7 +740,8 @@ class ContextScraper {
      * @return A list of named AppContextPair objects representing the known
      * inventories, or an empty list if not found.
      */
-    static List<AppContextPair> scrapeContextData(String pageResult) {
+    static List<AppContextPair> scrapeContextData(String pageResult)
+            throws JSONException {
         try {
             BufferedReader read;
             read = new BufferedReader(new StringReader(pageResult));
@@ -775,39 +773,35 @@ class ContextScraper {
      * @return A list of named AppContextPair objects representing the available
      * inventories.
      */
-    private static List<AppContextPair> parseContextData(String json) {
+    private static List<AppContextPair> parseContextData(String json)
+            throws JSONException {
         List<AppContextPair> result = new ArrayList<>();
 
-        try {
-            JSONObject feedData = new JSONObject(json);
+        JSONObject feedData = new JSONObject(json);
 
-            for (String on : (Set<String>) feedData.keySet()) {
-                JSONObject o = feedData.getJSONObject(on);
-                if (o != null) {
-                    String gameName = o.getString("name");
-                    int appid = o.getInt("appid");
+        for (String on : (Set<String>) feedData.keySet()) {
+            JSONObject o = feedData.getJSONObject(on);
+            if (o != null) {
+                String gameName = o.getString("name");
+                int appid = o.getInt("appid");
 
-                    JSONObject contextData = o.getJSONObject("rgContexts");
+                JSONObject contextData = o.getJSONObject("rgContexts");
 
-                    for (String bn : (Set<String>) contextData.keySet()) {
-                        JSONObject b = contextData.getJSONObject(bn);
-                        String contextName = b.getString("name");
-                        long contextid = Long.parseLong(b.getString("id"));
-                        int assetCount = b.getInt("asset_count");
+                for (String bn : (Set<String>) contextData.keySet()) {
+                    JSONObject b = contextData.getJSONObject(bn);
+                    String contextName = b.getString("name");
+                    long contextid = Long.parseLong(b.getString("id"));
+                    int assetCount = b.getInt("asset_count");
 
-                        // "Team Fortress 2 - Backpack (226)"
-                        String invNameFormat = String.format("%s - %s (%d)", gameName, contextName, assetCount);
+                    // "Team Fortress 2 - Backpack (226)"
+                    String invNameFormat = String.format("%s - %s (%d)", gameName, contextName, assetCount);
 
-                        // Only include the inventory if it's not empty.
-                        if (assetCount > 0) {
-                            result.add(new AppContextPair(appid, contextid, invNameFormat));
-                        }
+                    // Only include the inventory if it's not empty.
+                    if (assetCount > 0) {
+                        result.add(new AppContextPair(appid, contextid, invNameFormat));
                     }
                 }
             }
-            return result;
-        } catch (JSONException pe) {
-            pe.printStackTrace();
         }
         return result;
     }
