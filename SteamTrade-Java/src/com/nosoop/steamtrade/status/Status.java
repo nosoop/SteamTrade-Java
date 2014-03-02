@@ -18,7 +18,7 @@ public class Status {
     public String error;
     public boolean newversion;
     public boolean success;
-    public long trade_status = -1;
+    public int trade_status = -1;
     public int version;
     public int logpos;
     public TradeUserStatus me;
@@ -31,7 +31,7 @@ public class Status {
 
         if (success) {
             error = "None";
-            trade_status = obj.getLong("trade_status");
+            trade_status = obj.getInt("trade_status");
             
             if (trade_status == 0) {
                 newversion = obj.getBoolean("newversion");
