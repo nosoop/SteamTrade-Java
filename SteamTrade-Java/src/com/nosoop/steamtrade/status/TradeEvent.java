@@ -51,7 +51,7 @@ public class TradeEvent {
                 STACKABLE_CHANGED = 8;
     }
 
-    public TradeEvent(JSONObject event) throws JSONException {
+    TradeEvent(JSONObject event) throws JSONException {
         jsonObject = event;
 
         steamid = event.getString("steamid");

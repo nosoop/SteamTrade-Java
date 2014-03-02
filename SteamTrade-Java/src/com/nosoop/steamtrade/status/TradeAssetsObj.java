@@ -20,7 +20,7 @@ public class TradeAssetsObj {
     
     long amount;
     
-    public TradeAssetsObj(JSONObject obj) throws JSONException {
+    TradeAssetsObj(JSONObject obj) throws JSONException {
         this.appid = Integer.parseInt(obj.getString("appid"));
         this.contextid = Long.parseLong(obj.getString("contextid"));
         this.assetid = Long.parseLong(obj.getString("assetid"));

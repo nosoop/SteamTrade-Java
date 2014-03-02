@@ -18,7 +18,7 @@ public class TradeUserStatus {
     public int sec_since_touch;
     public List<TradeAssetsObj> assets;
 
-    public TradeUserStatus(JSONObject obj) throws JSONException {
+    TradeUserStatus(JSONObject obj) throws JSONException {
         ready = obj.getLong("ready") == 1;
         confirmed = obj.getLong("confirmed") == 1;
         sec_since_touch = obj.getInt("sec_since_touch");
