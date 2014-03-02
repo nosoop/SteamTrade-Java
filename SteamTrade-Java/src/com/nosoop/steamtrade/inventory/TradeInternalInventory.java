@@ -27,6 +27,7 @@ public class TradeInternalInventory {
     List<TradeInternalCurrency> currencyItems;
     int appid;
     long contextid;
+    private Map<ClassInstancePair, JSONObject> descriptions;
 
     // {"amount":"12","timestamp":1376049909,"steamid":"76561198006980102","currencyid":"2","old_amount":"0","action":"6","appid":99900,"contextid":"4296569382"}
     // myInternalInventory.getInventory(99900, 4296569382).getCurrency(int currencyid); ??
@@ -52,27 +53,39 @@ public class TradeInternalInventory {
 
             if (json.getBoolean("success")) {
                 inventoryValid = true;
-                
+
                 rgInventory = json.optJSONObject("rgInventory");
                 rgDescriptions = json.optJSONObject("rgDescriptions");
-                
+
                 inventoryItems = new ArrayList<>();
                 currencyItems = new ArrayList<>();
+
+                descriptions = new HashMap<>();
+
+                // Convenience map to associate class/instance to description.
+                for (final String rgDescriptionKey : (Set<String>) rgDescriptions.keySet()) {
+                    JSONObject rgDescriptionItem =
+                            rgDescriptions.getJSONObject(rgDescriptionKey);
+
+                    int classid = rgDescriptionItem.getInt("classid");
+                    long instanceid = rgDescriptionItem.getLong("instanceid");
+                    
+                    descriptions.put(new ClassInstancePair(classid, instanceid),
+                            rgDescriptionItem);
+                }
 
                 if (rgInventory != null) {
                     for (final String rgInventoryItem : (Set<String>) rgInventory.keySet()) {
                         JSONObject itemEntry = rgInventory.getJSONObject(rgInventoryItem);
-                        
+
                         generateInventoryItem(Long.parseLong(itemEntry.getString("id")));
                     }
                 }
-                
+
                 rgCurrency = json.optJSONObject("rgCurrency");
                 if (rgCurrency != null) {
                     for (final String rgCurrencyItem : (Set<String>) rgCurrency.keySet()) {
-                        JSONObject itemEntry = rgCurrency.getJSONObject(rgCurrencyItem);
-                        
-                        generateCurrencyItem(Long.parseLong(itemEntry.getString("classid")));
+                        generateCurrencyItem(rgCurrencyItem);
                     }
                 }
             }
@@ -80,7 +93,7 @@ public class TradeInternalInventory {
             e.printStackTrace();
         }
     }
-    
+
     public AppContextPair getAppContextPair() {
         return new AppContextPair(appid, contextid);
     }
@@ -97,35 +110,74 @@ public class TradeInternalInventory {
         }
         return null;
     }
-    
-    private void generateCurrencyItem(long currencyid) throws JSONException {
-        int instanceid = 0; // ?
-        
-        String index = String.format("%d_%d", currencyid, instanceid);
-        
-        System.out.println(rgDescriptions.getJSONObject(index));
-        
-        TradeInternalCurrency generatedItem = new TradeInternalCurrency(currencyid, rgDescriptions.getJSONObject(index));
-        
+
+    private void generateCurrencyItem(String rgCurrencyID) throws JSONException {
+        JSONObject invInstance = rgCurrency.getJSONObject(rgCurrencyID);
+
+        ClassInstancePair itemCI = new ClassInstancePair(
+                Integer.parseInt(invInstance.getString("classid")),
+                Long.parseLong(invInstance.optString("instanceid", "0")));
+
+        TradeInternalCurrency generatedItem = new TradeInternalCurrency(
+                Integer.parseInt(rgCurrencyID), descriptions.get(itemCI));
+
         currencyItems.add(generatedItem);
     }
 
     private void generateInventoryItem(long itemid) throws JSONException {
-        String i = String.valueOf(itemid);
-        JSONObject invInstance = rgInventory.getJSONObject(i);
-        
-        int classid = Integer.parseInt(invInstance.getString("classid"));
-        long instanceid = Long.parseLong(invInstance.optString("instanceid", "0"));
+        JSONObject invInstance = rgInventory.getJSONObject(String.valueOf(itemid));
 
-        String index = String.format("%d_%d", classid, instanceid);
+        ClassInstancePair itemCI = new ClassInstancePair(
+                Integer.parseInt(invInstance.getString("classid")), 
+                Long.parseLong(invInstance.optString("instanceid", "0")));
 
         long id = Long.parseLong(invInstance.getString("id"));
 
-        TradeInternalItem generatedItem = new TradeInternalItem(id, rgDescriptions.getJSONObject(index));
+        TradeInternalItem generatedItem =
+                new TradeInternalItem(id, descriptions.get(itemCI));
 
         generatedItem.appid = this.appid;
         generatedItem.contextid = this.contextid;
 
         inventoryItems.add(generatedItem);
+    }
+}
+
+/**
+ * Utility class to identify class-instance pairs.
+ *
+ * @author nosoop < nosoop at users.noreply.github.com >
+ */
+class ClassInstancePair {
+
+    int classid;
+    long instanceid;
+
+    ClassInstancePair(int classid, long instanceid) {
+        this.classid = classid;
+        this.instanceid = instanceid;
+    }
+
+    @Override
+    public int hashCode() {
+        return 497 * classid + (int) instanceid;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ClassInstancePair other = (ClassInstancePair) obj;
+        if (this.classid != other.classid) {
+            return false;
+        }
+        if (this.instanceid != other.instanceid) {
+            return false;
+        }
+        return true;
     }
 }
