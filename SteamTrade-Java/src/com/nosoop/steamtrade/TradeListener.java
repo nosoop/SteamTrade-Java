@@ -7,15 +7,39 @@ public abstract class TradeListener {
     public TradeSession trade;
 
     /**
-     * Defines known trade error codes.
+     * Defines trade status codes to be interpreted by the onError() method.
      */
     public class TradeStatusCodes {
 
-        public final static int STATUS_ERROR = 1,
-                TRADE_CANCELLED = 2,
-                INITIALIZATION_ERROR = 3,
+        public final static int //
+                /**
+                 * Non-error statuses. Everything is okay according to Steam.
+                 * Something weird is going on if onError() is called with these
+                 * values.
+                 */
+                // We are polling for updates.
+                STATUS_OK = 0,
+                // Both users have decided to make the trade.
+                TRADE_COMPLETED = 1,
+                /**
+                 * Steam web errors. Something funky happened on Steam's side.
+                 * The error codes are defined by Steam.
+                 */
+                // One user cancelled.
+                TRADE_CANCELLED = 3,
+                // The other user timed out.
                 PARTNER_TIMED_OUT = 4,
-                TRADE_FAILED = 5;
+                // The trade failed in general.
+                TRADE_FAILED = 5,
+                /**
+                 * SteamTrade-Java errors. Something in this library bugged out.
+                 * The following error values are defined and used within the
+                 * library.
+                 */
+                // There was a JSONException reached when parsing the status.
+                STATUS_PARSE_ERROR = 1001,
+                // The trade session was unable to fetch your inventories.
+                BACKPACK_SCRAPE_ERROR = 1002;
     }
 
     /**
