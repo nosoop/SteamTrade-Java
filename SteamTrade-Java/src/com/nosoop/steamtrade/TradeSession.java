@@ -35,7 +35,6 @@ public class TradeSession implements Runnable {
     public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
     // Generic Trade info
     public boolean meReady = false, otherReady = false;
-    boolean tradeStarted = false;
     int lastEvent = 0;
     // Fixed object to synchronize polling against.
     protected final Object POLL_LOCK = new Object();
@@ -102,6 +101,8 @@ public class TradeSession implements Runnable {
         scrapeBackpackContexts();
 
         tradeListener.onAfterInit();
+        
+        TIME_LAST_PARTNER_ACTION = TIME_TRADE_START = System.currentTimeMillis();
     }
     public Status status = null;
 
@@ -113,17 +114,11 @@ public class TradeSession implements Runnable {
     @Override
     public void run() {
         synchronized (POLL_LOCK) {
-            if (!tradeStarted) {
-                tradeStarted = true;
-
-                TIME_LAST_PARTNER_ACTION = TIME_TRADE_START = System.currentTimeMillis();
-            }
-
             try {
                 status = getStatus();
             } catch (final JSONException e) {
-                e.printStackTrace();
-                tradeListener.onError(TradeStatusCodes.STATUS_PARSE_ERROR);
+                tradeListener.onError(
+                        TradeStatusCodes.STATUS_PARSE_ERROR, e.getMessage());
 
                 try {
                     API.cancelTrade();
@@ -153,13 +148,18 @@ public class TradeSession implements Runnable {
                 tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
             }
 
-            if (status.trade_status == 1) {
+            if (status.trade_status == TradeStatusCodes.TRADE_COMPLETED) {
                 // Trade successful.
                 tradeListener.onTradeSuccess();
                 tradeListener.onTradeClosed();
+            } else if (status.trade_status == 
+                    TradeStatusCodes.STATUS_ERRORMESSAGE) {
+                tradeListener.onError(status.trade_status, status.error);
+                tradeListener.onTradeClosed();
             } else if (status.trade_status > 1) {
                 // Refer to TradeListener.TradeStatusCodes for known values.
-                fireEventError(status.trade_status);
+                tradeListener.onError(status.trade_status, null);
+                tradeListener.onTradeClosed();
             }
 
             // Update Local Variables
@@ -299,17 +299,6 @@ public class TradeSession implements Runnable {
     }
 
     /**
-     * Helper method to fire off an error and tell the tradeListener that the
-     * trade is done and/or wrecked.
-     *
-     * @param errorCode The error value to fire.
-     */
-    private void fireEventError(int errorCode) {
-        tradeListener.onError(errorCode);
-        tradeListener.onTradeClosed();
-    }
-
-    /**
      * Loads a copy of the trade screen, passing the data to ContextScraper to
      * generate a list of AppContextPairs as reference to load inventories with.
      */
@@ -324,7 +313,8 @@ public class TradeSession implements Runnable {
             myAppContextData = contexts;
         } catch (JSONException e) {
             myAppContextData = new ArrayList<>();
-            tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR);
+            tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR,
+                    null);
         }
     }
 
