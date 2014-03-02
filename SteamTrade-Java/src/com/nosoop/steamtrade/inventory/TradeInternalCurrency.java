@@ -13,8 +13,14 @@ import org.json.JSONObject;
  */
 public class TradeInternalCurrency extends TradeInternalItem {
 
+    int amount;
+    
     TradeInternalCurrency(long id, JSONObject rgDescriptionItem) throws JSONException {
         super(id, rgDescriptionItem);
+    }
+    
+    public int getAmount() {
+        return amount;
     }
     // TODO Add method to return overridable name instead of using basic display.
 }
