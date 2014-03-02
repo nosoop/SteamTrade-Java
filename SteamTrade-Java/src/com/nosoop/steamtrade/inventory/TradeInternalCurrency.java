@@ -13,6 +13,8 @@ import bundled.steamtrade.org.json.JSONObject;
  */
 public class TradeInternalCurrency extends TradeInternalItem {
 
+    public static final TradeInternalCurrency UNAVAILABLE = null;
+    
     int amount;
     long currencyid;
     

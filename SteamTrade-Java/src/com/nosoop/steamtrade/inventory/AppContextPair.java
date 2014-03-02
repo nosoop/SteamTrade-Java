@@ -1,8 +1,8 @@
 package com.nosoop.steamtrade.inventory;
 
 /**
- * Represents an integer/long id pair for item inventories. Optionally allows a
- * name.
+ * Represents an integer/long id pair to identify a player's inventory.
+ * Optionally allows a name.
  *
  * @author nosoop
  */
@@ -12,12 +12,25 @@ public class AppContextPair {
     long contextid;
     String name;
 
+    /**
+     * Creates an app-context pair.
+     *
+     * @param appid
+     * @param contextid
+     */
     public AppContextPair(int appid, long contextid) {
         this.appid = appid;
         this.contextid = contextid;
         this.name = null;
     }
 
+    /**
+     * Creates an app-context pair with a name.
+     *
+     * @param appid
+     * @param contextid
+     * @param name
+     */
     public AppContextPair(int appid, long contextid, String name) {
         this(appid, contextid);
         this.name = name;
@@ -46,8 +59,9 @@ public class AppContextPair {
 
     /**
      * Returns a String representing the AppContextPair object.
-     * @return String with the game name (ex: "Team Fortress 2"). If
-     * null, returns a generic identifier (ex: "[APPCONTEXT] 440_2") instead.
+     *
+     * @return String with the game name (ex: "Team Fortress 2"). If null,
+     * returns a generic identifier (ex: "[APPCONTEXT] 440_2") instead.
      */
     @Override
     public String toString() {

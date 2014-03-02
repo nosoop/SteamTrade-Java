@@ -52,27 +52,58 @@ public class TradeInternalInventory {
         }
     }
 
+    /**
+     * Gets the AppContextPair associated with the inventory. Example: A Team
+     * Fortress 2 inventory would return an AppContextPair equal to <code>new 
+     * AppContextPair(440, 2);</code>
+     *
+     * @return An AppContextPair "key" representing this instance.
+     */
     public AppContextPair getAppContextPair() {
         return new AppContextPair(appid, contextid);
     }
 
+    /**
+     * Gets the user's available trading inventory.
+     * 
+     * @return A List containing all the available TradeInternalItem instances.
+     */
     public List<TradeInternalItem> getItemList() {
         return inventoryItems;
     }
-    
+
+    /**
+     * Gets the user's available currency items for the game.
+     * 
+     * @return A List containing all available TradeInternalCurrency instances.
+     */
     public List<TradeInternalCurrency> getCurrencyList() {
         return currencyItems;
     }
 
-    public TradeInternalItem getItem(long itemid) {
+    /**
+     * Retrieves an item by its assetid.
+     * 
+     * @param assetid The assetid of the TradeInternalItem to get.
+     * @return A TradeInternalItem instance if available, or an instance of null
+     * if not.
+     */
+    public TradeInternalItem getItem(long assetid) {
         for (TradeInternalItem item : inventoryItems) {
-            if (item.assetid == itemid) {
+            if (item.assetid == assetid) {
                 return item;
             }
         }
-        return null;
+        return TradeInternalItem.UNAVAILABLE;
     }
-    
+
+    /**
+     * Retrieves a currency item by its currencyid
+     * 
+     * @param currencyid The currencyid of the TradeInternalCurrency to get.
+     * @return A TradeInternalCurrency instance if available, or an instance of
+     * null if not.
+     */
     public TradeInternalCurrency getCurrency(long currencyid) {
         for (TradeInternalCurrency currency : currencyItems) {
             if (currency.currencyid == currencyid) {
@@ -169,6 +200,11 @@ class ClassInstancePair {
     int classid;
     long instanceid;
 
+    /**
+     * Creates a class-instance pair.
+     * @param classid
+     * @param instanceid 
+     */
     ClassInstancePair(int classid, long instanceid) {
         this.classid = classid;
         this.instanceid = instanceid;

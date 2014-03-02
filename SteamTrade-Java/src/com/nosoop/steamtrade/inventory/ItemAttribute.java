@@ -16,6 +16,7 @@ public class ItemAttribute {
     public float floatValue;
     public String value;
 
+    @Deprecated
     ItemAttribute(JSONObject obj) throws JSONException {
         defIndex = (short) obj.getInt("defindex");
         value = obj.getString("value");

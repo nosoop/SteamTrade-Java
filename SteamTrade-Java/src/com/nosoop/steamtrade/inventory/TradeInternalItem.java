@@ -13,6 +13,8 @@ import bundled.steamtrade.org.json.JSONObject;
  */
 public class TradeInternalItem {
 
+    public static final TradeInternalItem UNAVAILABLE = null;
+    
     public boolean isRenamed;
     
     /**
@@ -38,7 +40,7 @@ public class TradeInternalItem {
     public boolean wasGifted;
     // TODO Implementation of stackable items.
     boolean stackable;
-
+    
     TradeInternalItem(long assetid, JSONObject rgDescriptionItem) throws JSONException {
 
         this.marketName = rgDescriptionItem.getString("market_name");

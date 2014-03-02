@@ -76,16 +76,14 @@ public abstract class TradeListener {
      * Called when the other person adds an item. If this is an item from a new
      * inventory, that inventory is loaded before this event is called.
      *
-     * @param schemaItem
-     * @param inventoryItem
+     * @param inventoryItem The item added to the trade.
      */
     public abstract void onUserAddItem(TradeInternalItem inventoryItem);
 
     /**
      * Called when the other person removes an item.
      *
-     * @param schemaItem
-     * @param inventoryItem
+     * @param inventoryItem The item removed from the trade.
      */
     public abstract void onUserRemoveItem(TradeInternalItem inventoryItem);
 
@@ -122,10 +120,13 @@ public abstract class TradeListener {
      * up. Called immediately after a successful trade or trade error.
      */
     public abstract void onTradeClosed();
-    
+
     /**
      * Called when the client receives a TradeEvent that it has no idea how to
-     * handle. In this case, you can handle it yourself a little bit.
+     * handle. In this case, a subclass of TradeListener can override this
+     * method to handle the event without having to dive into the library code.
+     *
+     * @param event A trade event to be handled manually.
      */
     public void onUnknownAction(TradeEvent event) {
     }

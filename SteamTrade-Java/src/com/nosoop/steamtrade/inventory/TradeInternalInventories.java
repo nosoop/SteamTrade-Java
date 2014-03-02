@@ -46,7 +46,7 @@ public class TradeInternalInventories {
      *
      * @param appid A game's appid.
      * @param contextid An game's inventory contextid.
-     * @return Whether or not the inventory map contains a key value 
+     * @return Whether or not the inventory map contains a key value
      * AppContextPair represented by the given appid and contextid.
      */
     public boolean hasInventory(int appid, long contextid) {
@@ -57,8 +57,9 @@ public class TradeInternalInventories {
      * Returns a boolean value stating if the inventory collection contains a
      * specific inventory.
      *
-     * @param contextdata An AppContextPair 
-     * @return Whether or not the inventory map contains a key value of the 
+     * @param contextdata An AppContextPair representing a game inventory to
+     * check for.
+     * @return Whether or not the inventory map contains a key value of the
      * given AppContextPair.
      */
     public boolean hasInventory(AppContextPair contextdata) {
@@ -90,7 +91,7 @@ public class TradeInternalInventories {
     private AppContextPair getInventoryKey(int appid, long contextid) {
         return new AppContextPair(appid, contextid);
     }
-    
+
     /**
      * @return A list of all available / known inventories held by this object.
      */

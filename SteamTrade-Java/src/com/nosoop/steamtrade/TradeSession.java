@@ -76,7 +76,6 @@ public class TradeSession implements Runnable {
      * @param sessionId String value of the Base64-encoded session token.
      * @param token String value of Steam's login token.
      * @param listener Trade listener to respond to trade actions.
-     * @throws Exception
      */
     @SuppressWarnings("LeakingThisInConstructor")
     public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
@@ -184,7 +183,7 @@ public class TradeSession implements Runnable {
 
     /**
      * Handles received trade events and fires the appropriate event at the
-     * TradeListener defined in the constructor.
+     * given TradeListener, defined in the constructor.
      *
      * @param evt Trade event being handled.
      */
@@ -254,7 +253,7 @@ public class TradeSession implements Runnable {
              * then we will load it.
              */
             if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
-                addForeignInventory(STEAMID_PARTNER, evt.appid, evt.contextid);
+                addForeignInventory(evt.appid, evt.contextid);
             }
             final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
@@ -291,7 +290,7 @@ public class TradeSession implements Runnable {
         // TODO Set support for currency?
         if (!isBot) {
             if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
-                addForeignInventory(STEAMID_PARTNER, evt.appid, evt.contextid);
+                addForeignInventory(evt.appid, evt.contextid);
             }
             final TradeInternalCurrency item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
 
@@ -301,7 +300,7 @@ public class TradeSession implements Runnable {
 
     /**
      * Loads a copy of the trade screen, passing the data to ContextScraper to
-     * generate a list of AppContextPairs as reference to load inventories with.
+     * generate a list of AppContextPairs to load our inventories with.
      */
     private void scrapeBackpackContexts() {
         // I guess we're scraping the trade page.
@@ -310,12 +309,16 @@ public class TradeSession implements Runnable {
         String pageData = API.fetch(TRADE_URL, "GET", data);
 
         try {
-            List<AppContextPair> contexts = ContextScraper.scrapeContextData(pageData);
+            List<AppContextPair> contexts = 
+                    ContextScraper.scrapeContextData(pageData);
             myAppContextData = contexts;
         } catch (JSONException e) {
+            // Notify the trade listener if we can't get our backpack data.
+            
             myAppContextData = new ArrayList<>();
             tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR,
                     null);
+            
         }
     }
 
@@ -364,12 +367,11 @@ public class TradeSession implements Runnable {
     /**
      * Loads a copy of the other person's possibly private inventory, once we
      * receive an item from it.
-     *
-     * @param otherId
-     * @param appId
-     * @param contextId
+
+     * @param appid The game to load the inventory from.
+     * @param contextid The inventory of the game to be loaded.
      */
-    protected synchronized void addForeignInventory(long otherId, int appId, long contextId) {
+    protected synchronized void addForeignInventory(int appid, long contextid) {
         /**
          * TODO Make the loading concurrent so it does not hang on large
          * inventories. ... I'm looking at you, backpack.tf card swap bots. Not
@@ -382,13 +384,13 @@ public class TradeSession implements Runnable {
         } catch (final UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        data.put("steamid", otherId + "");
-        data.put("appid", appId + "");
-        data.put("contextid", contextId + "");
+        data.put("steamid", STEAMID_PARTNER + "");
+        data.put("appid", appid + "");
+        data.put("contextid", contextid + "");
 
         String feed = API.fetch(TRADE_URL + "foreigninventory", "POST", data);
 
-        otherUserTradeInventories.addInventory(appId, contextId, feed);
+        otherUserTradeInventories.addInventory(appid, contextid, feed);
     }
 
     /**
@@ -408,14 +410,14 @@ public class TradeSession implements Runnable {
      */
     public class TradeCommands {
 
-        final String baseTradeURL;
-        final String sessionId;
-        final String steamLogin;
+        final String TRADE_URL;
+        final String SESSION_ID;
+        final String STEAM_LOGIN;
 
         TradeCommands(String baseTradeURL, String sessionId, String steamLogin) {
-            this.baseTradeURL = baseTradeURL;
-            this.sessionId = sessionId;
-            this.steamLogin = steamLogin;
+            TRADE_URL = baseTradeURL;
+            SESSION_ID = sessionId;
+            STEAM_LOGIN = steamLogin;
         }
 
         /**
@@ -440,7 +442,7 @@ public class TradeSession implements Runnable {
             final Map<String, String> data = new HashMap<>();
 
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -449,7 +451,7 @@ public class TradeSession implements Runnable {
             data.put("contextid", "" + contextid);
             data.put("itemid", "" + assetid);
             data.put("slot", "" + slot);
-            fetch(baseTradeURL + "additem", "POST", data);
+            fetch(TRADE_URL + "additem", "POST", data);
         }
 
         /**
@@ -472,7 +474,7 @@ public class TradeSession implements Runnable {
             final Map<String, String> data = new HashMap<>();
 
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
@@ -480,7 +482,7 @@ public class TradeSession implements Runnable {
             data.put("appid", "" + appid);
             data.put("contextid", "" + contextid);
             data.put("itemid", "" + assetid);
-            fetch(baseTradeURL + "removeitem", "POST", data);
+            fetch(TRADE_URL + "removeitem", "POST", data);
         }
 
         /**
@@ -493,13 +495,13 @@ public class TradeSession implements Runnable {
         public boolean setReady(boolean ready) {
             final Map<String, String> data = new HashMap<>();
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
             data.put("ready", ready ? "true" : "false");
             data.put("version", "" + version);
-            final String response = fetch(baseTradeURL + "toggleready", "POST", data);
+            final String response = fetch(TRADE_URL + "toggleready", "POST", data);
             try {
                 Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
@@ -527,12 +529,12 @@ public class TradeSession implements Runnable {
         public JSONObject acceptTrade() throws JSONException {
             final Map<String, String> data = new HashMap<>();
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
             data.put("version", "" + version);
-            final String response = fetch(baseTradeURL + "confirm", "POST", data);
+            final String response = fetch(TRADE_URL + "confirm", "POST", data);
 
             return new JSONObject(response);
         }
@@ -547,12 +549,12 @@ public class TradeSession implements Runnable {
         public boolean cancelTrade() throws JSONException {
             final Map<String, String> data = new HashMap();
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
 
-            final String response = fetch(baseTradeURL + "cancel", "POST", data);
+            final String response = fetch(TRADE_URL + "cancel", "POST", data);
 
             if (response == null) {
                 return false;
@@ -569,14 +571,14 @@ public class TradeSession implements Runnable {
         public String sendMessage(String message) {
             final Map<String, String> data = new HashMap<>();
             try {
-                data.put("sessionid", URLDecoder.decode(sessionId, "UTF-8"));
+                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
             } catch (final UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
             data.put("message", message);
 
             // TODO Make this into an object?
-            return fetch(baseTradeURL + "chat", "POST", data);
+            return fetch(TRADE_URL + "chat", "POST", data);
         }
 
         /**
@@ -606,7 +608,7 @@ public class TradeSession implements Runnable {
             String cookies = "";
             if (sendLoginData) {
                 try {
-                    cookies = "sessionid=" + URLEncoder.encode(sessionId, "UTF-8") + "; steamLogin=" + steamLogin + ";";
+                    cookies = "sessionid=" + URLEncoder.encode(SESSION_ID, "UTF-8") + "; steamLogin=" + STEAM_LOGIN + ";";
                 } catch (UnsupportedEncodingException e) {
                 }
             }
@@ -659,7 +661,7 @@ public class TradeSession implements Runnable {
 
                 // I don't know why, but we need a referer, otherwise we get a server error response.
                 // Just use our trade URL as the referer since we have it on hand.
-                conn.setRequestProperty("Referer", baseTradeURL);
+                conn.setRequestProperty("Referer", TRADE_URL);
 
                 // Accept compressed responses.  (We can decompress it.)
                 conn.setRequestProperty("Accept-Encoding", "gzip,deflate");
@@ -711,13 +713,15 @@ public class TradeSession implements Runnable {
  */
 class ContextScraper {
 
-    private static final List<AppContextPair> DEFAULT_APPCONTEXTDATA = new ArrayList<>();
+    static final List<AppContextPair> DEFAULT_APPCONTEXTDATA =
+            new ArrayList<>();
 
     /**
      * Initialize default AppContextPairs.
      */
     static {
-        DEFAULT_APPCONTEXTDATA.add(new AppContextPair(440, 2, "Team Fortress 2"));
+        DEFAULT_APPCONTEXTDATA.add(
+                new AppContextPair(440, 2, "Team Fortress 2"));
     }
 
     /**
@@ -742,8 +746,8 @@ class ContextScraper {
 
                 if (input.startsWith("var g_rgAppContextData")) {
                     // Extract the JSON string from the JavaScript source.  Bleh
-                    input = input.substring(input.indexOf('{'), input.length() - 1);
-                    return parseContextData(input);
+                    return parseContextData(input.substring
+                            (input.indexOf('{'), input.length() - 1));
                 }
             }
         } catch (IOException ex) {
@@ -783,11 +787,13 @@ class ContextScraper {
                     int assetCount = b.getInt("asset_count");
 
                     // "Team Fortress 2 - Backpack (226)"
-                    String invNameFormat = String.format("%s - %s (%d)", gameName, contextName, assetCount);
+                    String invNameFormat = String.format("%s - %s (%d)", 
+                            gameName, contextName, assetCount);
 
                     // Only include the inventory if it's not empty.
                     if (assetCount > 0) {
-                        result.add(new AppContextPair(appid, contextid, invNameFormat));
+                        result.add(new AppContextPair(
+                                appid, contextid, invNameFormat));
                     }
                 }
             }
