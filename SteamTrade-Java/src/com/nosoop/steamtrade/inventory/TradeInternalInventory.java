@@ -2,7 +2,6 @@ package com.nosoop.steamtrade.inventory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,8 +23,6 @@ public class TradeInternalInventory {
     int appid;
     long contextid;
 
-    // {"amount":"12","timestamp":1376049909,"steamid":"76561198006980102","currencyid":"2","old_amount":"0","action":"6","appid":99900,"contextid":"4296569382"}
-    // myInternalInventory.getInventory(99900, 4296569382).getCurrency(int currencyid); ??
     /**
      * Takes a String representation of the JSON data received from trading and
      * creates a representation of the inventory.
@@ -152,7 +149,8 @@ public class TradeInternalInventory {
                 generatedItem.appid = this.appid;
                 generatedItem.contextid = this.contextid;
 
-                generatedItem.amount = invInstance.getInt("amount");
+                // Currency amount only shows if it is yours.
+                generatedItem.amount = invInstance.optInt("amount", 0);
 
                 inventoryItems.add(generatedItem);
             }
