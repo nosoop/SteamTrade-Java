@@ -40,7 +40,9 @@ public abstract class TradeListener {
                 // There was a JSONException reached when parsing the status.
                 STATUS_PARSE_ERROR = 1001,
                 // The trade session was unable to fetch your inventories.
-                BACKPACK_SCRAPE_ERROR = 1002;
+                BACKPACK_SCRAPE_ERROR = 1002,
+                // Unknown -- a message is provided by the Status instance.
+                STATUS_ERRORMESSAGE = 1003;
     }
 
     /**
@@ -50,7 +52,7 @@ public abstract class TradeListener {
      * @param eid The error code. Known values are defined in
      * TradeListener.TradeErrorCodes.
      */
-    public abstract void onError(int errorCode);
+    public abstract void onError(int errorCode, String errorMessage);
 
     /**
      * Called when the client polls the trade. If you want to warn the other
