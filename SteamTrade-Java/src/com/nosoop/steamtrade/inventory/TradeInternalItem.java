@@ -2,6 +2,7 @@ package com.nosoop.steamtrade.inventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,7 +30,6 @@ public class TradeInternalItem {
     public int defIndex;
     public byte level;
     public byte quality;
-    //public int position;
     public boolean isNotCraftable;
     public List<ItemAttribute> attributes = new ArrayList<>();
     public int appid;
@@ -40,7 +40,6 @@ public class TradeInternalItem {
     boolean stackable;
 
     TradeInternalItem(long assetid, JSONObject rgDescriptionItem) throws JSONException {
-        JSONObject appData = rgDescriptionItem.optJSONObject("app_data");
 
         this.marketName = rgDescriptionItem.getString("market_name");
         this.displayName = rgDescriptionItem.getString("name");
@@ -50,6 +49,29 @@ public class TradeInternalItem {
         this.assetid = assetid;
         level = (byte) -1;
 
+        isNotCraftable = false;
+
+        // Iterate through descriptions.
+        JSONArray descs = rgDescriptionItem.optJSONArray("descriptions");
+        if (descs != null) {
+            for (int i = 0; i < descs.length(); i++) {
+                JSONObject descriptionItem = descs.getJSONObject(i);
+                String descriptionValue = descriptionItem.getString("value");
+                
+                // TODO Make this language independent?
+                if (descriptionValue.contains("Gift from")) {
+                    wasGifted = true;
+                }
+            }
+        }
+
+        isRenamed = (!marketName.equals(displayName) && displayName.matches("''.*''"));
+
+        // Assume non-tradable if it does not have a value for "tradable".
+        isTradable = rgDescriptionItem.optInt("tradable", 0) == 1;
+        
+        // TF2-specific stuff.
+        JSONObject appData = rgDescriptionItem.optJSONObject("app_data");
         if (appData != null) {
             if (appData.has("def_index")) {
                 defIndex = Integer.parseInt(appData.getString("def_index"));
@@ -59,32 +81,6 @@ public class TradeInternalItem {
                 quality = (byte) Integer.parseInt(appData.getString("quality"));
             }
         }
-
-        isNotCraftable = false;
-        final Object attrs = null; //obj.get("attributes");
-        if (attrs != null && attrs instanceof ArrayList<?>) {
-            for (final JSONObject attr : (ArrayList<JSONObject>) attrs) {
-                attributes.add(new ItemAttribute(attr));
-            }
-        }
-
-        // Iterate through descriptions.
-        final Object descs = rgDescriptionItem.get("descriptions");
-        if (descs != null && descs instanceof ArrayList<?>) {
-            for (final JSONObject descriptionItem : (ArrayList<JSONObject>) descs) {
-                // TODO Make this language independent?
-                String descriptionValue = descriptionItem.getString("value");
-                
-                if (descriptionValue.contains("Gift from")) {
-                    wasGifted = true;
-                }
-            }
-        }
-
-        isRenamed = (!marketName.equals(displayName) && displayName.matches("''.*''"));
-
-        isTradable = rgDescriptionItem.has("tradable")
-                ? rgDescriptionItem.getInt("tradable") == 1 : false;
     }
     // TODO Add method to return overridable name instead of using basic display?
 }
