@@ -1,6 +1,7 @@
 package com.nosoop.steamtrade;
 
 import com.nosoop.steamtrade.inventory.TradeInternalItem;
+import com.nosoop.steamtrade.status.TradeEvent;
 
 public abstract class TradeListener {
 
@@ -119,4 +120,11 @@ public abstract class TradeListener {
      * up. Called immediately after a successful trade or trade error.
      */
     public abstract void onTradeClosed();
+    
+    /**
+     * Called when the client receives a TradeEvent that it has no idea how to
+     * handle. In this case, you can handle it yourself a little bit.
+     */
+    public void onUnknownAction(TradeEvent event) {
+    }
 }

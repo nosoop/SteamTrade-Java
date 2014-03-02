@@ -231,13 +231,11 @@ public class TradeSession implements Runnable {
                 break;
             case 6:
             // TODO Add support for currency.
-            //break;
             case 8:
             // TODO Add support for stackable items.
-            //break;
             default:
-                System.out.println("Unknown Event ID: " + evt.action);
-                System.out.println(evt.getJSONObject());
+                // Let the trade listener handle it.
+                tradeListener.onUnknownAction(evt);
                 break;
         }
 
