@@ -61,11 +61,24 @@ public class TradeInternalInventory {
     public List<TradeInternalItem> getItemList() {
         return inventoryItems;
     }
+    
+    public List<TradeInternalCurrency> getCurrencyList() {
+        return currencyItems;
+    }
 
     public TradeInternalItem getItem(long itemid) {
         for (TradeInternalItem item : inventoryItems) {
             if (item.assetid == itemid) {
                 return item;
+            }
+        }
+        return null;
+    }
+    
+    public TradeInternalCurrency getCurrency(long currencyid) {
+        for (TradeInternalCurrency currency : currencyItems) {
+            if (currency.currencyid == currencyid) {
+                return currency;
             }
         }
         return null;

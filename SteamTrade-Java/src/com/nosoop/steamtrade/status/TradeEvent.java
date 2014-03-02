@@ -21,6 +21,7 @@ public class TradeEvent {
     public long assetid;
     // Currency-based.
     public int amount;
+    public long currencyid;
     JSONObject jsonObject;
 
     /* Reference to trade action ID's
@@ -72,6 +73,10 @@ public class TradeEvent {
         // amount required when dealing in currency
         if (event.has("amount")) {
             amount = Integer.parseInt(event.getString("amount"));
+        }
+        
+        if (event.has("currencyid")) {
+            currencyid = Long.parseLong(event.getString("currencyid"));
         }
     }
 
