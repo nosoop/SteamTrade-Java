@@ -22,19 +22,19 @@ public class SampleTradeListener extends TradeListener {
     public void onError(int errorCode) {
         String errorMessage;
         switch (errorCode) {
-            case TradeErrorCodes.STATUS_ERROR:
+            case TradeStatusCodes.STATUS_ERROR:
                 errorMessage = "Error parsing trade status.";
                 break;
-            case TradeErrorCodes.TRADE_CANCELLED:
+            case TradeStatusCodes.TRADE_CANCELLED:
                 errorMessage = "The trade has been canceled.";
                 break;
-            case TradeErrorCodes.INITIALIZATION_ERROR:
+            case TradeStatusCodes.INITIALIZATION_ERROR:
                 errorMessage = "We have timed out.";
                 break;
-            case TradeErrorCodes.PARTNER_TIMED_OUT:
+            case TradeStatusCodes.PARTNER_TIMED_OUT:
                 errorMessage = "Other user timed out.";
                 break;
-            case TradeErrorCodes.TRADE_FAILED:
+            case TradeStatusCodes.TRADE_FAILED:
                 errorMessage = "Trade failed.";
                 break;
             default:

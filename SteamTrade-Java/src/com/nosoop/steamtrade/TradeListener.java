@@ -9,7 +9,7 @@ public abstract class TradeListener {
     /**
      * Defines known trade error codes.
      */
-    public class TradeErrorCodes {
+    public class TradeStatusCodes {
 
         public final static int STATUS_ERROR = 1,
                 TRADE_CANCELLED = 2,

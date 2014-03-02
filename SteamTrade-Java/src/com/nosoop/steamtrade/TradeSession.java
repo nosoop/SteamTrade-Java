@@ -1,7 +1,7 @@
 package com.nosoop.steamtrade;
 
 import com.nosoop.steamtrade.status.*;
-import com.nosoop.steamtrade.TradeListener.TradeErrorCodes;
+import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import com.nosoop.steamtrade.inventory.*;
 import com.nosoop.steamtrade.status.TradeEvent.TradeAction;
 import java.io.UnsupportedEncodingException;
@@ -153,15 +153,17 @@ public class TradeSession implements Runnable {
                 tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
             }
 
+            System.out.println(status.trade_status);
+            
             if (status.trade_status == 3) {
                 // One trader cancelled.  (Can't determine who from the status.)
-                fireEventError(TradeErrorCodes.TRADE_CANCELLED);
+                fireEventError(TradeStatusCodes.TRADE_CANCELLED);
             } else if (status.trade_status == 4) {
                 // Other user timed out according to trade system.
-                fireEventError(TradeErrorCodes.PARTNER_TIMED_OUT);
+                fireEventError(TradeStatusCodes.PARTNER_TIMED_OUT);
             } else if (status.trade_status == 5) {
                 // Trade failed.
-                fireEventError(TradeErrorCodes.TRADE_FAILED);
+                fireEventError(TradeStatusCodes.TRADE_FAILED);
             } else if (status.trade_status == 1) {
                 // Trade successful.
                 tradeListener.onTradeSuccess();
