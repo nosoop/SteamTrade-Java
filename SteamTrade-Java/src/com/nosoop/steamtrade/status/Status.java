@@ -1,5 +1,7 @@
 package com.nosoop.steamtrade.status;
 
+import com.nosoop.steamtrade.TradeListener;
+import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -32,19 +34,19 @@ public class Status {
         if (success) {
             error = "None";
             trade_status = obj.getInt("trade_status");
-            
+
             if (trade_status == 0) {
                 newversion = obj.getBoolean("newversion");
                 version = obj.getInt("version");
                 if (obj.has("logpos")) {
                     logpos = obj.getInt("logpos");
                 }
-                
+
                 me = new TradeUserStatus(obj.getJSONObject("me"));
                 them = new TradeUserStatus(obj.getJSONObject("them"));
-                
+
                 JSONArray statusEvents = obj.optJSONArray("events");
-                
+
                 if (statusEvents != null) {
                     for (int i = 0; i < statusEvents.length(); i++) {
                         events.add(new TradeEvent(statusEvents.getJSONObject(i)));
@@ -52,7 +54,14 @@ public class Status {
                 }
             }
         } else {
-            error = obj.getString("error");
+            error = obj.optString("error", "(No error message.)");
+
+            /**
+             * If there is an error we should know about that isn't defined, we
+             * should add a custom status code to pick it up.
+             */
+            trade_status = obj.optInt("trade_status",
+                    TradeStatusCodes.STATUS_ERRORMESSAGE);
         }
     }
 }
