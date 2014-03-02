@@ -1,11 +1,12 @@
 package com.nosoop.steamtrade.inventory;
 
+import bundled.steamtrade.org.json.JSONObject;
+import bundled.steamtrade.org.json.JSONException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.json.*;
 
 /**
  * Represents a Steam user's inventory as displayed in trading and from viewing

@@ -1,5 +1,7 @@
 package com.nosoop.steamtrade;
 
+import bundled.steamtrade.org.json.JSONObject;
+import bundled.steamtrade.org.json.JSONException;
 import com.nosoop.steamtrade.status.*;
 import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import com.nosoop.steamtrade.inventory.*;
@@ -21,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.*;
 
 /**
  * Represents a session of a trade.

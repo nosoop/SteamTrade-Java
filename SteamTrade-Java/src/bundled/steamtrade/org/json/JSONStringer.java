@@ -1,4 +1,4 @@
-package org.json;
+package bundled.steamtrade.org.json;
 
 /*
 Copyright (c) 2006 JSON.org

@@ -1,7 +1,7 @@
 package com.nosoop.steamtrade.inventory;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import bundled.steamtrade.org.json.JSONException;
+import bundled.steamtrade.org.json.JSONObject;
 
 /**
  * Class that holds individual item attributes.

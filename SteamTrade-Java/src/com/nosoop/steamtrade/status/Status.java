@@ -5,10 +5,9 @@ import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import org.json.JSONObject;
+import bundled.steamtrade.org.json.JSONArray;
+import bundled.steamtrade.org.json.JSONException;
+import bundled.steamtrade.org.json.JSONObject;
 
 /**
  * Object representing current trade state. (No modifications.)

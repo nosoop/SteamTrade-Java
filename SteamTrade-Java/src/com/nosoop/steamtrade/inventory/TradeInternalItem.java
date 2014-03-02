@@ -2,9 +2,9 @@ package com.nosoop.steamtrade.inventory;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import bundled.steamtrade.org.json.JSONArray;
+import bundled.steamtrade.org.json.JSONException;
+import bundled.steamtrade.org.json.JSONObject;
 
 /**
  * Class representation of an item in a user's inventory.
