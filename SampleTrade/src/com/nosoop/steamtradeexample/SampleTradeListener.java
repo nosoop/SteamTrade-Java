@@ -19,16 +19,16 @@ public class SampleTradeListener extends TradeListener {
      * available as constants under TradeListener.TradeErrorCodes.
      */
     @Override
-    public void onError(int errorCode) {
+    public void onError(int errorCode, String msg) {
         String errorMessage;
         switch (errorCode) {
-            case TradeStatusCodes.STATUS_ERROR:
-                errorMessage = "Error parsing trade status.";
+            case TradeStatusCodes.STATUS_ERRORMESSAGE:
+                errorMessage = msg;
                 break;
             case TradeStatusCodes.TRADE_CANCELLED:
                 errorMessage = "The trade has been canceled.";
                 break;
-            case TradeStatusCodes.INITIALIZATION_ERROR:
+            case TradeStatusCodes.STATUS_PARSE_ERROR:
                 errorMessage = "We have timed out.";
                 break;
             case TradeStatusCodes.PARTNER_TIMED_OUT:
@@ -38,7 +38,7 @@ public class SampleTradeListener extends TradeListener {
                 errorMessage = "Trade failed.";
                 break;
             default:
-                errorMessage = "Unknown error (eid:" + errorCode + ").";
+                errorMessage = "Unhandled error (eid:" + errorCode + ").";
         }
 
         System.out.println(errorMessage);
