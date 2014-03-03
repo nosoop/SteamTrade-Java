@@ -52,7 +52,7 @@ public class TradeSession implements Runnable {
     // Trade interfacing object.
     private final TradeCommands API;
     //
-    // Internal properties needed for Steam API.
+    // Strings needed for Steam API.
     private final String TRADE_URL;
     private final String STEAM_LOGIN;
     private final String SESSION_ID;
@@ -61,10 +61,10 @@ public class TradeSession implements Runnable {
     protected int numEvents;
     //
     // The trade listener to offload events to.
-    public TradeListener tradeListener;
+    private TradeListener tradeListener;
     //
     // Timing variables.
-    private long TIME_TRADE_START, TIME_LAST_PARTNER_ACTION;
+    private long TIME_TRADE_START, timeLastPartnerAction;
     private final long STEAMID_SELF, STEAMID_PARTNER;
 
     /**
@@ -102,7 +102,7 @@ public class TradeSession implements Runnable {
 
         tradeListener.onAfterInit();
         
-        TIME_LAST_PARTNER_ACTION = TIME_TRADE_START = System.currentTimeMillis();
+        timeLastPartnerAction = TIME_TRADE_START = System.currentTimeMillis();
     }
     public Status status = null;
 
@@ -142,7 +142,7 @@ public class TradeSession implements Runnable {
                 // If there was no new action during this poll, update timer.
                 final long timeCurrent = System.currentTimeMillis();
 
-                final int secondsSinceLastAction = (int) ((timeCurrent - TIME_LAST_PARTNER_ACTION) / 1000);
+                final int secondsSinceLastAction = (int) ((timeCurrent - timeLastPartnerAction) / 1000);
                 final int secondsSinceTradeStart = (int) ((timeCurrent - TIME_TRADE_START) / 1000);
 
                 tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
@@ -240,7 +240,7 @@ public class TradeSession implements Runnable {
         }
 
         if (!isBot) {
-            TIME_LAST_PARTNER_ACTION = System.currentTimeMillis();
+            timeLastPartnerAction = System.currentTimeMillis();
         }
     }
 
@@ -393,6 +393,14 @@ public class TradeSession implements Runnable {
         otherUserTradeInventories.addInventory(appid, contextid, feed);
     }
 
+    public long getOwnSteamId() {
+        return STEAMID_SELF;
+    }
+    
+    public long getPartnerSteamId() {
+        return STEAMID_PARTNER;
+    }
+    
     /**
      * Gets the commands associated with this trade session.
      *
@@ -577,7 +585,6 @@ public class TradeSession implements Runnable {
             }
             data.put("message", message);
 
-            // TODO Make this into an object?
             return fetch(TRADE_URL + "chat", "POST", data);
         }
 
