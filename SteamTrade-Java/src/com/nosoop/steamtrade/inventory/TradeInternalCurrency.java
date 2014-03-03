@@ -12,8 +12,6 @@ import bundled.steamtrade.org.json.JSONObject;
  * @author nosoop
  */
 public class TradeInternalCurrency extends TradeInternalItem {
-
-    public static final TradeInternalCurrency UNAVAILABLE = null;
     
     int amount;
     long currencyid;
