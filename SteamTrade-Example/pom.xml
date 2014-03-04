@@ -23,7 +23,7 @@
     </dependency>
     <dependency>
       <groupId>com.nosoop.steamtrade</groupId>
-      <artifactId>SteamTrade-Lib</artifactId>
+      <artifactId>SteamTrade-Java</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
