@@ -16,6 +16,7 @@ The library also supports:
   * Dynamic loading of inventories (just about any game, pretty much)
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
+  * (Did I mention no API key?)
 
 Support for stackable items and currencies should be available fairly soon, as well.  Also thinking of how to add concurrent loading of inventories.
 
