@@ -30,7 +30,6 @@ public class TradeInternalItem {
     public byte level;
     public byte quality;
     public boolean isNotCraftable;
-    public List<ItemAttribute> attributes = new ArrayList<>();
     public int appid;
     public long contextid;
     boolean isTradable;

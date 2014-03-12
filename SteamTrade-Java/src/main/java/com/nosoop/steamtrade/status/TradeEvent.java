@@ -24,7 +24,7 @@ public class TradeEvent {
     public long currencyid;
     JSONObject jsonObject;
 
-    public class TradeAction {
+    public static class TradeAction {
 
         public static final int // Reference to trade action IDs
                 // Item added (itemid = "assetid")

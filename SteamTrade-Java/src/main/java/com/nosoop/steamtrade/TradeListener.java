@@ -15,7 +15,7 @@ public abstract class TradeListener {
     /**
      * Defines trade status codes to be interpreted by the onError() method.
      */
-    public class TradeStatusCodes {
+    public static class TradeStatusCodes {
 
         public final static int //
                 /**

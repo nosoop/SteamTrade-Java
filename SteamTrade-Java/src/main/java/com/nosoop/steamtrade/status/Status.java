@@ -1,10 +1,8 @@
 package com.nosoop.steamtrade.status;
 
-import com.nosoop.steamtrade.TradeListener;
 import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import bundled.steamtrade.org.json.JSONArray;
 import bundled.steamtrade.org.json.JSONException;
 import bundled.steamtrade.org.json.JSONObject;

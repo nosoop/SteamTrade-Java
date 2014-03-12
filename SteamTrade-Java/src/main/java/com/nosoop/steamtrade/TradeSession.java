@@ -553,9 +553,6 @@ public class TradeSession implements Runnable {
 
             final String response = fetch(TRADE_URL + "cancel", "POST", data);
 
-            if (response == null) {
-                return false;
-            }
             return (new JSONObject(response)).getBoolean("success");
         }
 
@@ -629,8 +626,8 @@ public class TradeSession implements Runnable {
             try {
                 String dataString = "";
                 if (data != null) {
-                    for (final String key : data.keySet()) {
-                        dataString += URLEncoder.encode(key, "UTF-8") + "=" + URLEncoder.encode(data.get(key), "UTF-8") + "&";
+                    for (Map.Entry<String,String> entry : data.entrySet()) {
+                        dataString += URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8") + "&";
                     }
                 }
                 if (!method.equals("POST")) {
@@ -672,6 +669,7 @@ public class TradeSession implements Runnable {
                     final OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream());
                     os.write(dataString.substring(0, dataString.length() - 1));
                     os.flush();
+                    os.close();
                 }
 
                 java.io.InputStream netStream = conn.getInputStream();
@@ -690,6 +688,8 @@ public class TradeSession implements Runnable {
                     }
                     out.append(line);
                 }
+                
+                reader.close();
             } catch (final IOException e) {
                 e.printStackTrace();
             }
