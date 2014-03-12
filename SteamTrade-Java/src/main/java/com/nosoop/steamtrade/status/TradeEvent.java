@@ -24,30 +24,27 @@ public class TradeEvent {
     public long currencyid;
     JSONObject jsonObject;
 
-    /* Reference to trade action ID's
-     * 0 = Add item (itemid = "assetid")
-     * 1 = Remove item (itemid = "assetid")
-     * 2 = Toggle ready
-     * 3 = Toggle not ready
-     * 4 = ?
-     * 5 = ? - maybe some sort of cancel
-     * 6 = Add / remove currency.
-     *     (SK Crowns/CE fall into this, but other SK items do 
-     *     not.)
-     * 7 = Chat (message = "text")
-     * 8 = Updated variable count item?
-     *     (Other SK items fall into this, but on initial add it
-     *     uses action 0.)
-     */
     public class TradeAction {
 
-        public static final int ITEM_ADDED = 0,
+        public static final int // Reference to trade action IDs
+                // Item added (itemid = "assetid")
+                ITEM_ADDED = 0,
+                // Item removed (itemid = "assetid")
                 ITEM_REMOVED = 1,
+                // Toggle ready
                 READY_TOGGLED = 2,
+                // Toggle not ready
                 READY_UNTOGGLED = 3,
-                // 4, 5
+                // Trade accepted
+                TRADE_ACCEPTED = 4,
+                // ? - maybe some sort of cancel
+                // 5
+                // Add / remove currency.
+                // (SK Crowns / Energy are, other stackables are not.)
                 CURRENCY_CHANGED = 6,
+                // Chat (message = "text")
                 MESSAGE_ADDED = 7,
+                // Update stackable item count?  Initial add uses ITEM_ADDED.
                 STACKABLE_CHANGED = 8;
     }
 
@@ -74,7 +71,7 @@ public class TradeEvent {
         if (event.has("amount")) {
             amount = Integer.parseInt(event.getString("amount"));
         }
-        
+
         if (event.has("currencyid")) {
             currencyid = Long.parseLong(event.getString("currencyid"));
         }

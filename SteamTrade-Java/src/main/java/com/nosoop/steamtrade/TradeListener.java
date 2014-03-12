@@ -3,6 +3,11 @@ package com.nosoop.steamtrade;
 import com.nosoop.steamtrade.inventory.TradeInternalItem;
 import com.nosoop.steamtrade.status.TradeEvent;
 
+/**
+ * Receives trade events from the TradeSession that it should be attached to.
+ *
+ * @author nosoop < nosoop at users.noreply.github.com >
+ */
 public abstract class TradeListener {
 
     public TradeSession trade;
@@ -30,18 +35,18 @@ public abstract class TradeListener {
                 TRADE_CANCELLED = 3,
                 // The other user timed out.
                 PARTNER_TIMED_OUT = 4,
-                // The trade failed in general.
+                // The trade failed in general. (?????)
                 TRADE_FAILED = 5,
                 /**
                  * SteamTrade-Java errors. Something in this library bugged out.
                  * The following error values are defined and used within the
                  * library.
                  */
-                // There was a JSONException reached when parsing the status.
+                // There was a JSONException caught when parsing the status.
                 STATUS_PARSE_ERROR = 1001,
                 // The trade session was unable to fetch your inventories.
                 BACKPACK_SCRAPE_ERROR = 1002,
-                // Unknown -- a message is provided by the Status instance.
+                // Unknown status -- message provided by the Status instance.
                 STATUS_ERRORMESSAGE = 1003;
     }
 
@@ -95,13 +100,13 @@ public abstract class TradeListener {
     public abstract void onMessage(String msg);
 
     /*
-     * Called when the user checks / unchecks the 'ready' box.
+     * Called when the trading partner checks / unchecks the 'ready' box.
      */
     public abstract void onUserSetReadyState(boolean ready);
 
     /**
-     * Called once the trade is being processed after both players have accepted
-     * (?).
+     * Called once the trading partner has accepted the trade and is waiting for
+     * us to accept.
      */
     public abstract void onUserAccept();
 
@@ -124,7 +129,7 @@ public abstract class TradeListener {
     /**
      * Called when the client receives a TradeEvent that it has no idea how to
      * handle. In this case, a subclass of TradeListener can override this
-     * method to handle the event without having to dive into the library code.
+     * method to handle the event a bit without having to recompile the library. 
      *
      * @param event A trade event to be handled manually.
      */

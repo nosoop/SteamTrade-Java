@@ -44,7 +44,8 @@ public class TradeSession implements Runnable {
     private final TradeCommands API;
     // Strings needed for Steam API.
     private final String TRADE_URL, STEAM_LOGIN, SESSION_ID;
-    // Integers needed for checking trade events.
+    // Integers and status object, needed for checking trade events.
+    public Status status = null;
     protected int version = 1;
     protected int logpos;
     protected int numEvents;
@@ -85,7 +86,6 @@ public class TradeSession implements Runnable {
 
         timeLastPartnerAction = TIME_TRADE_START = System.currentTimeMillis();
     }
-    public Status status = null;
 
     /**
      * Polls the TradeSession for updates. Suggested poll rate is once every
@@ -189,7 +189,6 @@ public class TradeSession implements Runnable {
                     TRADE_USER_PARTNER.ready = true;
                     tradeListener.onUserSetReadyState(true);
                 } else {
-                    //meReady = true;
                     TRADE_USER_SELF.ready = true;
                 }
                 break;
@@ -198,11 +197,10 @@ public class TradeSession implements Runnable {
                     TRADE_USER_PARTNER.ready = false;
                     tradeListener.onUserSetReadyState(false);
                 } else {
-                    //meReady = false;
                     TRADE_USER_SELF.ready = false;
                 }
                 break;
-            case 4:
+            case TradeAction.TRADE_ACCEPTED:
                 if (!isBot) {
                     tradeListener.onUserAccept();
                 }
@@ -298,7 +296,6 @@ public class TradeSession implements Runnable {
             myAppContextData = contexts;
         } catch (JSONException e) {
             // Notify the trade listener if we can't get our backpack data.
-
             myAppContextData = new ArrayList<>();
             tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR,
                     null);
@@ -509,7 +506,6 @@ public class TradeSession implements Runnable {
                         TRADE_USER_PARTNER.ready = readyStatus.them.ready;
                         TRADE_USER_SELF.ready = readyStatus.me.ready;
                     } else {
-                        //meReady = true;
                         TRADE_USER_SELF.ready = true;
                     }
                     return TRADE_USER_SELF.ready;
@@ -685,7 +681,6 @@ public class TradeSession implements Runnable {
                     netStream = new java.util.zip.GZIPInputStream(netStream);
                 }
 
-                //cookies = conn.getHeaderField("Set-Cookie");
                 final BufferedReader reader = new BufferedReader(new InputStreamReader(netStream));
 
                 String line; // Stores an individual line currently being read.
