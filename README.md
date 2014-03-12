@@ -27,9 +27,7 @@ To use the library, one must have a valid Steam sessionId and Steam login token,
 
 A small snippet of the library in example use is available as the SampleTrade project.
 
-This is a NetBeans project and is dependent on a copy of the `org.json` reference JSON library. The library is bundled with the project as the Java package `bundled.steamtrade.org.json`, to avoid conflicts with existing installs of `org.json`.
-
-A future change may turn this into a couple of Maven projects so the project does not remain dependent on NetBeans.
+This is a Maven project and is dependent on a copy of the `org.json` reference JSON library. The library is bundled with the project as the Java package `bundled.steamtrade.org.json`, to avoid conflicts with existing installs of `org.json`.
 
 Just a Note
 -----------
