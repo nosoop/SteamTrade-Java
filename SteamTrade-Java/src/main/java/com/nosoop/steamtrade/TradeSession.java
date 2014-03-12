@@ -77,7 +77,7 @@ public class TradeSession implements Runnable {
         TRADE_USER_PARTNER = new TradeUser(steamidPartner);
 
         TRADE_URL = String.format(STEAM_TRADE_URL, steamidPartner);
-        API = new TradeCommands(TRADE_URL, SESSION_ID, STEAM_LOGIN);
+        API = new TradeCommands();
 
         tradeListener.onWelcome();
         scrapeBackpackContexts();
@@ -407,14 +407,7 @@ public class TradeSession implements Runnable {
      */
     public class TradeCommands {
 
-        final String TRADE_URL;
-        final String SESSION_ID;
-        final String STEAM_LOGIN;
-
-        TradeCommands(String baseTradeURL, String sessionId, String steamLogin) {
-            TRADE_URL = baseTradeURL;
-            SESSION_ID = sessionId;
-            STEAM_LOGIN = steamLogin;
+        TradeCommands() {
         }
 
         /**
