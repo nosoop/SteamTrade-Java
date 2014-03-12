@@ -42,8 +42,8 @@ public class TradeSession implements Runnable {
     //
     // The items put up for offer.
     // TODO Make this my/other stuff into a struct.
-    public Set<TradeInternalItem> myTradeOffer = new HashSet<>(), otherTradeOffer = new HashSet<>();
-    public Object[] trades;
+    public Set<TradeInternalItem> myTradeOffer = new HashSet<>(),
+            otherTradeOffer = new HashSet<>();
     //
     // The inventories of both users.
     public TradeInternalInventories otherUserTradeInventories, myTradeInventories;
@@ -81,8 +81,6 @@ public class TradeSession implements Runnable {
     public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
         STEAMID_SELF = steamidSelf;
         STEAMID_PARTNER = steamidPartner;
-
-        trades = new Object[]{myTradeOffer, otherTradeOffer};
 
         SESSION_ID = sessionId;
         STEAM_LOGIN = token;
@@ -266,12 +264,12 @@ public class TradeSession implements Runnable {
         final TradeInternalItem item =
                 inv.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
 
-        ((Set<TradeInternalItem>) trades[isBot ? 0 : 1]).add(item);
+        (isBot ? myTradeOffer : otherTradeOffer).add(item);
     }
 
     private void eventUserRemovedItem(TradeEvent evt) {
         boolean isBot = !evt.steamid.equals(String.valueOf(STEAMID_PARTNER));
-        ((Set<Long>) trades[isBot ? 0 : 1]).remove(evt.assetid);
+        
         if (!isBot) {
             final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserRemoveItem(item);
@@ -282,7 +280,7 @@ public class TradeSession implements Runnable {
                 (isBot ? myTradeInventories : otherUserTradeInventories)
                 .getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
 
-        ((Set<TradeInternalItem>) trades[isBot ? 0 : 1]).remove(item);
+        (isBot ? myTradeOffer : otherTradeOffer).remove(item);
     }
 
     private void eventUserSetCurrencyAmount(TradeEvent evt) {
