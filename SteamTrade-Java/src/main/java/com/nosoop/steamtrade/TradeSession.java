@@ -666,10 +666,11 @@ public class TradeSession implements Runnable {
 
                 if (method.equals("POST")) {
                     conn.setDoOutput(true);
-                    final OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream());
-                    os.write(dataString.substring(0, dataString.length() - 1));
-                    os.flush();
-                    os.close();
+                    try (OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream())) {
+                        os.write(dataString.substring(0, dataString.length() - 1));
+                        os.flush();
+                        os.close();
+                    }
                 }
 
                 java.io.InputStream netStream = conn.getInputStream();
@@ -678,18 +679,16 @@ public class TradeSession implements Runnable {
                 if (conn.getContentEncoding().contains("gzip")) {
                     netStream = new java.util.zip.GZIPInputStream(netStream);
                 }
-
-                final BufferedReader reader = new BufferedReader(new InputStreamReader(netStream));
-
-                String line; // Stores an individual line currently being read.
-                while ((line = reader.readLine()) != null) {
-                    if (out.length() > 0) {
-                        out.append('\n');
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(netStream))) {
+                    String line; // Stores an individual line currently being read.
+                    while ((line = reader.readLine()) != null) {
+                        if (out.length() > 0) {
+                            out.append('\n');
+                        }
+                        out.append(line);
                     }
-                    out.append(line);
+                    reader.close();
                 }
-                
-                reader.close();
             } catch (final IOException e) {
                 e.printStackTrace();
             }
@@ -703,7 +702,7 @@ public class TradeSession implements Runnable {
      *
      * @author nosoop
      */
-    public class TradeUser {
+    public static class TradeUser {
 
         final long STEAM_ID;
         final Set<TradeInternalItem> TRADE_OFFER;

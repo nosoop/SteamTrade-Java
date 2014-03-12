@@ -1,7 +1,5 @@
 package com.nosoop.steamtrade.inventory;
 
-import java.util.ArrayList;
-import java.util.List;
 import bundled.steamtrade.org.json.JSONArray;
 import bundled.steamtrade.org.json.JSONException;
 import bundled.steamtrade.org.json.JSONObject;
