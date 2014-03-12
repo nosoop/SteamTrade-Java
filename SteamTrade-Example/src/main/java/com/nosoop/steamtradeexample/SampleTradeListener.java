@@ -149,7 +149,7 @@ public class SampleTradeListener extends TradeListener {
         TradeInternalItem item = tf2items.get((int) (Math.random() * tf2items.size()));
         trade.getCmds().addItem(item, 1);
 
-        System.out.printf("User said %s and we put up a %s.\n", msg, item.marketName);
+        System.out.printf("User said %s and we put up a %s.%n", msg, item.marketName);
     }
 
     /**
