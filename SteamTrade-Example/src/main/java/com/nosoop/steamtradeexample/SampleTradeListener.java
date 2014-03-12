@@ -140,7 +140,7 @@ public class SampleTradeListener extends TradeListener {
      */
     @Override
     public void onMessage(String msg) {
-        TradeInternalInventories itemStorage = trade.myTradeInventories;
+        TradeInternalInventories itemStorage = trade.getSelf().getInventories();
         TradeInternalInventory tf2backpack = itemStorage.getInventory(440, 2);
 
         List<TradeInternalItem> tf2items = tf2backpack.getItemList();

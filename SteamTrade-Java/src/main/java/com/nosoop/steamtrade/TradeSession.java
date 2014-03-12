@@ -34,38 +34,26 @@ public class TradeSession implements Runnable {
     // Static properties
     public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com";
     public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
-    // Generic Trade info
-    public boolean meReady = false, otherReady = false;
     int lastEvent = 0;
-    // Fixed object to synchronize polling against.
+    // Fixed object that we block against when polling.
     protected final Object POLL_LOCK = new Object();
-    //
-    // The items put up for offer.
-    // TODO Make this my/other stuff into a struct.
-    public Set<TradeInternalItem> myTradeOffer = new HashSet<>(),
-            otherTradeOffer = new HashSet<>();
-    //
-    // The inventories of both users.
-    public TradeInternalInventories otherUserTradeInventories, myTradeInventories;
+    // A representation of both users in the trade and their states.
+    private final TradeUser TRADE_USER_SELF, TRADE_USER_PARTNER;
+    // If scraping, the app/context inventory pairs that we have.
     public List<AppContextPair> myAppContextData;
-    //
-    // Trade interfacing object.
+    // Trade interfacing object for web commands.
     private final TradeCommands API;
-    //
     // Strings needed for Steam API.
-    private final String TRADE_URL;
-    private final String STEAM_LOGIN;
-    private final String SESSION_ID;
+    private final String TRADE_URL, STEAM_LOGIN, SESSION_ID;
+    // Integers needed for checking trade events.
     protected int version = 1;
     protected int logpos;
     protected int numEvents;
-    //
-    // The trade listener to offload events to.
+    // The trade listener to notify of events.
     private TradeListener tradeListener;
-    //
-    // Timing variables.
-    private long TIME_TRADE_START, timeLastPartnerAction;
-    private final long STEAMID_SELF, STEAMID_PARTNER;
+    // Timer variables to know how long the trade has been running and whatnot.
+    private final long TIME_TRADE_START;
+    private long timeLastPartnerAction;
 
     /**
      * Starts a new trading session.
@@ -79,27 +67,23 @@ public class TradeSession implements Runnable {
      */
     @SuppressWarnings("LeakingThisInConstructor")
     public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
-        STEAMID_SELF = steamidSelf;
-        STEAMID_PARTNER = steamidPartner;
-
         SESSION_ID = sessionId;
         STEAM_LOGIN = token;
 
-        listener.trade = this;
         tradeListener = listener;
+        tradeListener.trade = this;
 
-        TRADE_URL = String.format(TradeSession.STEAM_TRADE_URL, STEAMID_PARTNER);
+        TRADE_USER_SELF = new TradeUser(steamidSelf);
+        TRADE_USER_PARTNER = new TradeUser(steamidPartner);
 
+        TRADE_URL = String.format(STEAM_TRADE_URL, steamidPartner);
         API = new TradeCommands(TRADE_URL, SESSION_ID, STEAM_LOGIN);
-
-        myTradeInventories = new TradeInternalInventories();
-        otherUserTradeInventories = new TradeInternalInventories();
 
         tradeListener.onWelcome();
         scrapeBackpackContexts();
 
         tradeListener.onAfterInit();
-        
+
         timeLastPartnerAction = TIME_TRADE_START = System.currentTimeMillis();
     }
     public Status status = null;
@@ -150,8 +134,8 @@ public class TradeSession implements Runnable {
                 // Trade successful.
                 tradeListener.onTradeSuccess();
                 tradeListener.onTradeClosed();
-            } else if (status.trade_status == 
-                    TradeStatusCodes.STATUS_ERRORMESSAGE) {
+            } else if (status.trade_status
+                    == TradeStatusCodes.STATUS_ERRORMESSAGE) {
                 tradeListener.onError(status.trade_status, status.error);
                 tradeListener.onTradeClosed();
             } else if (status.trade_status > 1) {
@@ -162,8 +146,8 @@ public class TradeSession implements Runnable {
 
             // Update Local Variables
             if (status.them != null) {
-                otherReady = status.them.ready;
-                meReady = status.me.ready;
+                TRADE_USER_PARTNER.ready = status.them.ready;
+                TRADE_USER_SELF.ready = status.me.ready;
             }
 
             // Update version
@@ -187,7 +171,7 @@ public class TradeSession implements Runnable {
      */
     private void handleTradeEvent(final TradeEvent evt) {
         // Drop the event if the event's steamid is not theirs.
-        boolean isBot = !evt.steamid.equals(String.valueOf(STEAMID_PARTNER));
+        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         // TODO Link their asset to variable item count.
         if (status.them.assets != null) {
@@ -203,18 +187,20 @@ public class TradeSession implements Runnable {
                 break;
             case TradeAction.READY_TOGGLED:
                 if (!isBot) {
-                    otherReady = true;
+                    TRADE_USER_PARTNER.ready = true;
                     tradeListener.onUserSetReadyState(true);
                 } else {
-                    meReady = true;
+                    //meReady = true;
+                    TRADE_USER_SELF.ready = true;
                 }
                 break;
             case TradeAction.READY_UNTOGGLED:
                 if (!isBot) {
-                    otherReady = false;
+                    TRADE_USER_PARTNER.ready = false;
                     tradeListener.onUserSetReadyState(false);
                 } else {
-                    meReady = false;
+                    //meReady = false;
+                    TRADE_USER_SELF.ready = false;
                 }
                 break;
             case 4:
@@ -243,54 +229,55 @@ public class TradeSession implements Runnable {
     }
 
     private void eventUserAddedItem(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(STEAMID_PARTNER));
+        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         if (!isBot) {
             /**
              * If this is the other user and we don't have their inventory yet,
              * then we will load it.
              */
-            if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
+            if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
                 addForeignInventory(evt.appid, evt.contextid);
             }
-            final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
+            final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
 
         // Add to internal tracking.
-        final TradeInternalInventories inv = isBot
-                ? myTradeInventories : otherUserTradeInventories;
+        final TradeInternalInventories inv = (isBot
+                ? TRADE_USER_SELF : TRADE_USER_PARTNER).getInventories();
 
         final TradeInternalItem item =
                 inv.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
 
-        (isBot ? myTradeOffer : otherTradeOffer).add(item);
+        (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getOffer().add(item);
     }
 
     private void eventUserRemovedItem(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(STEAMID_PARTNER));
-        
+        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+
         if (!isBot) {
-            final TradeInternalItem item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
+            final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserRemoveItem(item);
         }
 
         // Get the item from one of our inventories and remove.
         final TradeInternalItem item =
-                (isBot ? myTradeInventories : otherUserTradeInventories)
+                (isBot ? TRADE_USER_SELF.getInventories() : TRADE_USER_PARTNER.getInventories())
                 .getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
 
-        (isBot ? myTradeOffer : otherTradeOffer).remove(item);
+        (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getOffer().remove(item);
     }
 
     private void eventUserSetCurrencyAmount(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(STEAMID_PARTNER));
+        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+
         // TODO Set support for currency?
         if (!isBot) {
-            if (!otherUserTradeInventories.hasInventory(evt.appid, evt.contextid)) {
+            if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
                 addForeignInventory(evt.appid, evt.contextid);
             }
-            final TradeInternalCurrency item = otherUserTradeInventories.getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
+            final TradeInternalCurrency item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
 
             // TODO Fire event at listener for currency update.
         }
@@ -307,16 +294,16 @@ public class TradeSession implements Runnable {
         String pageData = API.fetch(TRADE_URL, "GET", data);
 
         try {
-            List<AppContextPair> contexts = 
+            List<AppContextPair> contexts =
                     ContextScraper.scrapeContextData(pageData);
             myAppContextData = contexts;
         } catch (JSONException e) {
             // Notify the trade listener if we can't get our backpack data.
-            
+
             myAppContextData = new ArrayList<>();
             tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR,
                     null);
-            
+
         }
     }
 
@@ -351,21 +338,21 @@ public class TradeSession implements Runnable {
     public void loadOwnInventory(AppContextPair appContext) {
         final String url, response;
 
-        if (myTradeInventories.hasInventory(appContext)) {
+        if (TRADE_USER_SELF.getInventories().hasInventory(appContext)) {
             return;
         }
 
-        url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", STEAMID_SELF, appContext.getAppid(), appContext.getContextid());
+        url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", TRADE_USER_SELF.STEAM_ID, appContext.getAppid(), appContext.getContextid());
 
         response = API.fetch(url, "GET", null, true);
 
-        myTradeInventories.addInventory(appContext, response);
+        TRADE_USER_SELF.getInventories().addInventory(appContext, response);
     }
 
     /**
      * Loads a copy of the other person's possibly private inventory, once we
      * receive an item from it.
-
+     *
      * @param appid The game to load the inventory from.
      * @param contextid The inventory of the game to be loaded.
      */
@@ -382,23 +369,31 @@ public class TradeSession implements Runnable {
         } catch (final UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        data.put("steamid", STEAMID_PARTNER + "");
+        data.put("steamid", TRADE_USER_PARTNER.STEAM_ID + "");
         data.put("appid", appid + "");
         data.put("contextid", contextid + "");
 
         String feed = API.fetch(TRADE_URL + "foreigninventory", "POST", data);
 
-        otherUserTradeInventories.addInventory(appid, contextid, feed);
+        TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
     }
 
     public long getOwnSteamId() {
-        return STEAMID_SELF;
+        return TRADE_USER_SELF.STEAM_ID;
     }
-    
+
     public long getPartnerSteamId() {
-        return STEAMID_PARTNER;
+        return TRADE_USER_PARTNER.STEAM_ID;
     }
-    
+
+    public TradeUser getSelf() {
+        return TRADE_USER_SELF;
+    }
+
+    public TradeUser getPartner() {
+        return TRADE_USER_PARTNER;
+    }
+
     /**
      * Gets the commands associated with this trade session.
      *
@@ -427,7 +422,7 @@ public class TradeSession implements Runnable {
         }
 
         /**
-         * Adds an item to the trade.
+         * Tell the trading service to add one of our own items into the trade.
          *
          * @param item The item, represented by an TradeInternalItem instance.
          * @param slot The offer slot to place the item in (0~255).
@@ -512,12 +507,13 @@ public class TradeSession implements Runnable {
                 Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
                     if (readyStatus.trade_status == 0) {
-                        otherReady = readyStatus.them.ready;
-                        meReady = readyStatus.me.ready;
+                        TRADE_USER_PARTNER.ready = readyStatus.them.ready;
+                        TRADE_USER_SELF.ready = readyStatus.me.ready;
                     } else {
-                        meReady = true;
+                        //meReady = true;
+                        TRADE_USER_SELF.ready = true;
                     }
-                    return meReady;
+                    return TRADE_USER_SELF.ready;
                 }
             } catch (final JSONException e) {
                 e.printStackTrace();
@@ -708,6 +704,43 @@ public class TradeSession implements Runnable {
             return out.toString();
         }
     }
+
+    /**
+     * A set of values associated with one of the two users currently in the
+     * trade.
+     *
+     * @author nosoop
+     */
+    public class TradeUser {
+
+        final long STEAM_ID;
+        final Set<TradeInternalItem> TRADE_OFFER;
+        final TradeInternalInventories INVENTORIES;
+        boolean ready;
+
+        TradeUser(long steamid) {
+            this.STEAM_ID = steamid;
+            this.TRADE_OFFER = new HashSet<>();
+            this.INVENTORIES = new TradeInternalInventories();
+            this.ready = false;
+        }
+
+        public Set<TradeInternalItem> getOffer() {
+            return TRADE_OFFER;
+        }
+
+        public long getSteamID() {
+            return STEAM_ID;
+        }
+
+        public TradeInternalInventories getInventories() {
+            return INVENTORIES;
+        }
+
+        public boolean isReady() {
+            return ready;
+        }
+    }
 }
 
 /**
@@ -718,6 +751,7 @@ public class TradeSession implements Runnable {
  */
 class ContextScraper {
 
+    // TODO Uncouple this from the TradeSession class?
     static final List<AppContextPair> DEFAULT_APPCONTEXTDATA =
             new ArrayList<>();
 
@@ -751,8 +785,7 @@ class ContextScraper {
 
                 if (input.startsWith("var g_rgAppContextData")) {
                     // Extract the JSON string from the JavaScript source.  Bleh
-                    return parseContextData(input.substring
-                            (input.indexOf('{'), input.length() - 1));
+                    return parseContextData(input.substring(input.indexOf('{'), input.length() - 1));
                 }
             }
         } catch (IOException ex) {
@@ -792,7 +825,7 @@ class ContextScraper {
                     int assetCount = b.getInt("asset_count");
 
                     // "Team Fortress 2 - Backpack (226)"
-                    String invNameFormat = String.format("%s - %s (%d)", 
+                    String invNameFormat = String.format("%s - %s (%d)",
                             gameName, contextName, assetCount);
 
                     // Only include the inventory if it's not empty.
