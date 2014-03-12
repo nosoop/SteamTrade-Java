@@ -12,28 +12,27 @@ import bundled.steamtrade.org.json.JSONObject;
 public class TradeInternalItem {
 
     public static final TradeInternalItem UNAVAILABLE = null;
-    public boolean isRenamed;
     /**
      * The display name of the item. If the item was renamed (as it could be in
      * TF2, it will be that name.
      */
-    public String displayName;
+    String displayName;
     /**
      * The name it would be grouped under in the Steam Community Market. Is
      * blank if not in the Market.
      */
-    public String marketName;
-    public long assetid;
-    public int defIndex;
-    public byte level;
-    public byte quality;
-    public boolean isNotCraftable;
-    public int appid;
-    public long contextid;
+    String marketName;
+    long assetid;
+    int defIndex;
+    byte level;
+    byte quality;
+    boolean isNotCraftable;
+    int appid;
+    long contextid;
     boolean isTradable;
-    public boolean wasGifted;
-    public int classid;
-    public long instanceid;
+    boolean wasGifted;
+    int classid;
+    long instanceid;
     // TODO Implementation of stackable items.
     boolean stackable;
 
@@ -70,8 +69,6 @@ public class TradeInternalItem {
             }
         }
 
-        isRenamed = (!marketName.equals(displayName) && displayName.matches("''.*''"));
-
         // Assume non-tradable if it does not have a value for "tradable".
         isTradable = rgDescriptionItem.optInt("tradable", 0) == 1;
 
@@ -88,4 +85,52 @@ public class TradeInternalItem {
         }
     }
     // TODO Add method to return overridable name instead of using basic display?
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getMarketName() {
+        return marketName;
+    }
+
+    public int getAppid() {
+        return appid;
+    }
+
+    public long getContextid() {
+        return contextid;
+    }
+
+    public long getAssetid() {
+        return assetid;
+    }
+
+    public long getInstanceid() {
+        return instanceid;
+    }
+
+    public int getClassid() {
+        return classid;
+    }
+
+    /**
+     * Gets the definition index for the item.
+     *
+     * @return The item's definition index.
+     * @deprecated It's only available for TF2, just about. TODO: Add support
+     * for subclassing TradeInternalItem?
+     */
+    @Deprecated
+    public int getDefIndex() {
+        return defIndex;
+    }
+
+    public boolean isRenamed() {
+        return !marketName.equals(displayName) && displayName.matches("''.*''");
+    }
+
+    public boolean wasGifted() {
+        return wasGifted;
+    }
 }

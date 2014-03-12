@@ -114,11 +114,11 @@ public class SampleTradeListener extends TradeListener {
      */
     @Override
     public void onUserAddItem(TradeInternalItem inventoryItem) {
-        trade.getCmds().sendMessage("You added a " + inventoryItem.marketName);
+        trade.getCmds().sendMessage("You added a " + inventoryItem.getMarketName());
 
-        if (inventoryItem.isRenamed) {
-            System.out.println(inventoryItem.marketName);
-            System.out.println("  - named " + inventoryItem.displayName);
+        if (inventoryItem.isRenamed()) {
+            System.out.println(inventoryItem.getMarketName());
+            System.out.println("  - named " + inventoryItem.getDisplayName());
         }
     }
 
@@ -129,7 +129,7 @@ public class SampleTradeListener extends TradeListener {
      */
     @Override
     public void onUserRemoveItem(TradeInternalItem inventoryItem) {
-        trade.getCmds().sendMessage("You removed a " + inventoryItem.marketName);
+        trade.getCmds().sendMessage("You removed a " + inventoryItem.getMarketName());
     }
 
     /**
@@ -149,7 +149,7 @@ public class SampleTradeListener extends TradeListener {
         TradeInternalItem item = tf2items.get((int) (Math.random() * tf2items.size()));
         trade.getCmds().addItem(item, 1);
 
-        System.out.printf("User said %s and we put up a %s.%n", msg, item.marketName);
+        System.out.printf("User said %s and we put up a %s.%n", msg, item.getMarketName());
     }
 
     /**
@@ -193,7 +193,10 @@ public class SampleTradeListener extends TradeListener {
     public void onTradeSuccess() {
         System.out.println("Items traded.");
 
-        // TODO Provide example code to display what items were traded.
+        
+        for (TradeInternalItem item : trade.getSelf().getOffer()) {
+            // TODO Provide example code to display what items were traded.
+        }
     }
 
     /**

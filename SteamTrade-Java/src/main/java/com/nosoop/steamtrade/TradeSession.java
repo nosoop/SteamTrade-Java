@@ -417,7 +417,7 @@ public class TradeSession implements Runnable {
          * @param slot The offer slot to place the item in (0~255).
          */
         public void addItem(TradeInternalItem item, int slot) {
-            addItem(item.appid, item.contextid, item.assetid, slot);
+            addItem(item.getAppid(), item.getContextid(), item.getAssetid(), slot);
         }
 
         /**
@@ -450,7 +450,7 @@ public class TradeSession implements Runnable {
          * @param item The item, represented by an TradeInternalItem instance.
          */
         public void removeItem(TradeInternalItem item) {
-            removeItem(item.appid, item.contextid, item.assetid);
+            removeItem(item.getAppid(), item.getContextid(), item.getAssetid());
         }
 
         /**
