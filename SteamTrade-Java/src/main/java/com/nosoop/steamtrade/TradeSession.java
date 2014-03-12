@@ -13,7 +13,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.net.URLDecoder;
@@ -561,7 +560,7 @@ public class TradeSession implements Runnable {
             if (response == null) {
                 return false;
             }
-            return (boolean) (new JSONObject(response)).get("success");
+            return (new JSONObject(response)).getBoolean("success");
         }
 
         /**
@@ -696,8 +695,6 @@ public class TradeSession implements Runnable {
                     }
                     out.append(line);
                 }
-            } catch (final MalformedURLException e) {
-                e.printStackTrace();
             } catch (final IOException e) {
                 e.printStackTrace();
             }
