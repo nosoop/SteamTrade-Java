@@ -33,7 +33,6 @@ public class TradeSession implements Runnable {
     // Static properties
     public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com";
     public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
-    int lastEvent = 0;
     // Fixed object that we block against when polling.
     protected final Object POLL_LOCK = new Object();
     // A representation of both users in the trade and their states.
@@ -48,7 +47,7 @@ public class TradeSession implements Runnable {
     public Status status = null;
     protected int version = 1;
     protected int logpos;
-    protected int numEvents;
+    int lastEvent = 0;
     // The trade listener to notify of events.
     private TradeListener tradeListener;
     // Timer variables to know how long the trade has been running and whatnot.
@@ -123,8 +122,8 @@ public class TradeSession implements Runnable {
                 // If there was no new action during this poll, update timer.
                 final long timeCurrent = System.currentTimeMillis();
 
-                final int secondsSinceLastAction = (int) ((timeCurrent - timeLastPartnerAction) / 1000);
-                final int secondsSinceTradeStart = (int) ((timeCurrent - TIME_TRADE_START) / 1000);
+                final int secondsSinceLastAction = (int) (timeCurrent - timeLastPartnerAction) / 1000;
+                final int secondsSinceTradeStart = (int) (timeCurrent - TIME_TRADE_START) / 1000;
 
                 tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
             }
@@ -260,7 +259,7 @@ public class TradeSession implements Runnable {
 
         // Get the item from one of our inventories and remove.
         final TradeInternalItem item =
-                (isBot ? TRADE_USER_SELF.getInventories() : TRADE_USER_PARTNER.getInventories())
+                (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getInventories()
                 .getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
 
         (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getOffer().remove(item);
