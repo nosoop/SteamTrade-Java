@@ -47,7 +47,9 @@ public abstract class TradeListener {
                 // The trade session was unable to fetch your inventories.
                 BACKPACK_SCRAPE_ERROR = 1002,
                 // Unknown status -- message provided by the Status instance.
-                STATUS_ERRORMESSAGE = 1003;
+                STATUS_ERRORMESSAGE = 1003,
+                // Something happened with the foreign inventory loading.
+                FOREIGN_INVENTORY_LOAD_ERROR = 1004;
     }
 
     /**

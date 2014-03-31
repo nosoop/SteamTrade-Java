@@ -16,8 +16,8 @@ import java.util.Set;
  * project by Jessecar96)
  */
 public class TradeInternalInventory {
-
     boolean inventoryValid;
+    String errorMessage;
     List<TradeInternalItem> inventoryItems;
     // Debating on implementation for currency items.
     List<TradeInternalCurrency> currencyItems;
@@ -54,7 +54,8 @@ public class TradeInternalInventory {
 
     /**
      * Gets the AppContextPair associated with the inventory. Example: A Team
-     * Fortress 2 inventory would return an AppContextPair equal to <code>new 
+     * Fortress 2 inventory would return an AppContextPair equal to
+     * <code>new
      * AppContextPair(440, 2);</code>
      *
      * @return An AppContextPair "key" representing this instance.
@@ -65,7 +66,7 @@ public class TradeInternalInventory {
 
     /**
      * Gets the user's available trading inventory.
-     * 
+     *
      * @return A List containing all the available TradeInternalItem instances.
      */
     public List<TradeInternalItem> getItemList() {
@@ -74,7 +75,7 @@ public class TradeInternalInventory {
 
     /**
      * Gets the user's available currency items for the game.
-     * 
+     *
      * @return A List containing all available TradeInternalCurrency instances.
      */
     public List<TradeInternalCurrency> getCurrencyList() {
@@ -82,8 +83,31 @@ public class TradeInternalInventory {
     }
 
     /**
-     * Retrieves an item by its assetid.
+     * Returns whether or not the inventory loading was successful.
+     *
+     * @return
+     */
+    public boolean isValid() {
+        return inventoryValid;
+    }
+
+    /**
+     * Returns the error message associated with the error response.
      * 
+     * @return The JSON error message from the response if the inventory loading
+     * was unsuccessful, or an empty string if it was.
+     */
+    public String getErrorMessage() {
+        if (!inventoryValid) {
+            return errorMessage;
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * Retrieves an item by its assetid.
+     *
      * @param assetid The assetid of the TradeInternalItem to get.
      * @return A TradeInternalItem instance if available, or an instance of null
      * if not.
@@ -99,7 +123,7 @@ public class TradeInternalInventory {
 
     /**
      * Retrieves a currency item by its currencyid
-     * 
+     *
      * @param currencyid The currencyid of the TradeInternalCurrency to get.
      * @return A TradeInternalCurrency instance if available, or an instance of
      * null if not.
@@ -121,6 +145,14 @@ public class TradeInternalInventory {
      */
     private void parseInventory(final JSONObject json) throws JSONException {
         inventoryValid = true;
+
+        // Well. Something's fucky here.
+        // They changed the 
+        if (!json.getBoolean("success")) {
+            //throw new Error("Retrieving inventory was unsuccessful.");
+            inventoryValid = false;
+            errorMessage = json.getString("error");
+        }
 
         inventoryItems = new ArrayList<>();
         currencyItems = new ArrayList<>();
@@ -196,14 +228,14 @@ public class TradeInternalInventory {
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 class ClassInstancePair {
-
     int classid;
     long instanceid;
 
     /**
      * Creates a class-instance pair.
+     *
      * @param classid
-     * @param instanceid 
+     * @param instanceid
      */
     ClassInstancePair(int classid, long instanceid) {
         this.classid = classid;

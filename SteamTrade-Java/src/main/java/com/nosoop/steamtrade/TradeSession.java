@@ -29,7 +29,6 @@ import java.util.List;
  * @author Top-Cat, nosoop
  */
 public class TradeSession implements Runnable {
-
     // Static properties
     public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com";
     public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
@@ -233,8 +232,14 @@ public class TradeSession implements Runnable {
              * then we will load it.
              */
             if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
-                addForeignInventory(evt.appid, evt.contextid);
+                boolean success = addForeignInventory(evt.appid, evt.contextid);
+                
+                if (!success) {
+                    TradeInternalInventory inv = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid);
+                    tradeListener.onError(TradeStatusCodes.FOREIGN_INVENTORY_LOAD_ERROR, inv.getErrorMessage());
+                }
             }
+            
             final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
@@ -350,8 +355,9 @@ public class TradeSession implements Runnable {
      *
      * @param appid The game to load the inventory from.
      * @param contextid The inventory of the game to be loaded.
+     * @return Whether or not the inventory loading was successful.
      */
-    protected synchronized void addForeignInventory(int appid, long contextid) {
+    protected synchronized boolean addForeignInventory(int appid, long contextid) {
         /**
          * TODO Make the loading concurrent so it does not hang on large
          * inventories. ... I'm looking at you, backpack.tf card swap bots. Not
@@ -371,6 +377,8 @@ public class TradeSession implements Runnable {
         String feed = API.fetch(TRADE_URL + "foreigninventory", "POST", data);
 
         TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
+
+        return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
     }
 
     public long getOwnSteamId() {
@@ -405,7 +413,6 @@ public class TradeSession implements Runnable {
      * @author nosoop
      */
     public class TradeCommands {
-
         TradeCommands() {
         }
 
@@ -618,7 +625,7 @@ public class TradeSession implements Runnable {
             try {
                 String dataString = "";
                 if (data != null) {
-                    for (Map.Entry<String,String> entry : data.entrySet()) {
+                    for (Map.Entry<String, String> entry : data.entrySet()) {
                         dataString += URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8") + "&";
                     }
                 }
@@ -695,7 +702,6 @@ public class TradeSession implements Runnable {
      * @author nosoop
      */
     public static class TradeUser {
-
         final long STEAM_ID;
         final Set<TradeInternalItem> TRADE_OFFER;
         final TradeInternalInventories INVENTORIES;
@@ -724,6 +730,7 @@ public class TradeSession implements Runnable {
             return ready;
         }
     }
+
 }
 
 /**
@@ -733,7 +740,6 @@ public class TradeSession implements Runnable {
  * @author nosoop
  */
 class ContextScraper {
-
     // TODO Uncouple this from the TradeSession class?
     static final List<AppContextPair> DEFAULT_APPCONTEXTDATA =
             new ArrayList<>();
