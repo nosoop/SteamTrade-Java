@@ -10,15 +10,18 @@ About
 A heavily modified fork of [Top-Cat's ScrapBank.tf project](https://github.com/Top-Cat/ScrapBank.tf/), designed to be less dependent on the project's bots and SteamKit-specific classes.  
 It does not rely on any of Valve's public-facing API for inventory loading, so there is no need for an API key.
 
-The library also supports:
+The library, if you're unfamiliar with Steam trading, also supports:
   * Posting to and reading messages from trade chat
-  * Private backpacks ("foreign inventories" -- loaded when an item from the inventory is added)
+  * Purely private backpacks ("foreign inventories" -- loaded when an item from the inventory is added)
   * Dynamic loading of inventories (just about any game, pretty much)
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
-  * (Did I mention no API key?)
+  * Did I mention no API key? Of course, you'd need it if you'd like detailed game-specific data, but for on-the-surface stuff, I'd like to think you're covered - for the most part.
 
-Support for stackable items and currencies should be available fairly soon, as well.  Also thinking of how to add concurrent loading of inventories.
+Potential additions in the future include support for:
+  * Stackable items and currencies
+  * Threaded inventory loading
+  * Nice, pluggable support to handle game-specific stuff (seriously, the "gifted by" handling is really bad at best and I'd rather not leave TF2-specific code in there)
 
 
 Prerequisites, Dependencies and How-To
