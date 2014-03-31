@@ -374,7 +374,7 @@ public class TradeSession implements Runnable {
         data.put("appid", appid + "");
         data.put("contextid", contextid + "");
 
-        String feed = API.fetch(TRADE_URL + "foreigninventory", "POST", data);
+        String feed = API.fetch(TRADE_URL + "foreigninventory", "GET", data);
 
         TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
 
