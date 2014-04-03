@@ -31,6 +31,8 @@ public abstract class TradeListener {
                  * Steam web errors. Something funky happened on Steam's side.
                  * The error codes are defined by Steam.
                  */
+                // Why this would happen, I don't know.
+                TRADE_NOT_FOUND = 2,
                 // One user cancelled.
                 TRADE_CANCELLED = 3,
                 // The other user timed out.
