@@ -29,32 +29,50 @@ import java.util.List;
  * @author Top-Cat, nosoop
  */
 public class TradeSession implements Runnable {
-    // Static properties
-    public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com";
-    public final static String STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
-    // Fixed object that we block against when polling.
+    /**
+     * Static URL properties.
+     */
+    public final static String STEAM_COMMUNITY_DOMAIN = "steamcommunity.com",
+            STEAM_TRADE_URL = "http://steamcommunity.com/trade/%s/";
+    /**
+     * Object to lock while polling and handling updates.
+     */
     protected final Object POLL_LOCK = new Object();
-    // A representation of both users in the trade and their states.
+    /**
+     * Object representation of the users in the trade.
+     */
     private final TradeUser TRADE_USER_SELF, TRADE_USER_PARTNER;
-    // If scraping, the app/context inventory pairs that we have.
+    /**
+     * List of app-context pairs for the active client's inventory. (A list of
+     * the inventories we have, basically.)
+     */
     public List<AppContextPair> myAppContextData;
-    // Trade interfacing object for web commands.
+    /**
+     * Collection of methods to interact with the current trade session.
+     */
     private final TradeCommands API;
-    // Strings needed for Steam API.
+    /**
+     * String values needed for the trade.
+     */
     private final String TRADE_URL, STEAM_LOGIN, SESSION_ID;
-    // Integers and status object, needed for checking trade events.
+    /**
+     * Status values.
+     */
     public Status status = null;
-    protected int version = 1;
-    protected int logpos;
+    protected int version = 1, logpos;
     int lastEvent = 0;
-    // The trade listener to notify of events.
+    /**
+     * A TradeListener instance that listens for events fired by this session.
+     */
     private TradeListener tradeListener;
-    // Timer variables to know how long the trade has been running and whatnot.
+    /**
+     * Timing variables to check for idle state.
+     */
     private final long TIME_TRADE_START;
     private long timeLastPartnerAction;
 
     /**
-     * Starts a new trading session.
+     * Creates a new trading session.
      *
      * @param steamidSelf Long representation of our own SteamID.
      * @param steamidPartner Long representation of our trading partner's
@@ -137,7 +155,8 @@ public class TradeSession implements Runnable {
                 tradeListener.onTradeClosed();
             } else if (status.trade_status > 1) {
                 // Refer to TradeListener.TradeStatusCodes for known values.
-                tradeListener.onError(status.trade_status, null);
+                tradeListener.onError(status.trade_status,
+                        TradeStatusCodes.EMPTY_MESSAGE);
                 tradeListener.onTradeClosed();
             }
 
@@ -302,7 +321,7 @@ public class TradeSession implements Runnable {
             // Notify the trade listener if we can't get our backpack data.
             myAppContextData = new ArrayList<>();
             tradeListener.onError(TradeStatusCodes.BACKPACK_SCRAPE_ERROR,
-                    null);
+                    TradeStatusCodes.EMPTY_MESSAGE);
 
         }
     }
@@ -447,7 +466,8 @@ public class TradeSession implements Runnable {
             try {
                 Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
-                    if (readyStatus.trade_status == 0) {
+                    if (readyStatus.trade_status == 
+                            TradeStatusCodes.STATUS_OK) {
                         TRADE_USER_PARTNER.ready = readyStatus.them.ready;
                         TRADE_USER_SELF.ready = readyStatus.me.ready;
                     } else {
