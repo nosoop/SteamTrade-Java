@@ -569,6 +569,8 @@ public class TradeSession implements Runnable {
                 e.printStackTrace();
             }
             data.put("message", message);
+            data.put("logpos", "" + logpos);
+            data.put("version", "" + version);
 
             return fetch(TRADE_URL + "chat", "POST", data);
         }
