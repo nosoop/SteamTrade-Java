@@ -9,14 +9,12 @@ import com.nosoop.steamtrade.status.TradeEvent;
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public abstract class TradeListener {
-
     public TradeSession trade;
 
     /**
      * Defines trade status codes to be interpreted by the onError() method.
      */
     public static class TradeStatusCodes {
-
         public final static int //
                 /**
                  * Non-error statuses. Everything is okay according to Steam.
@@ -52,14 +50,17 @@ public abstract class TradeListener {
                 STATUS_ERRORMESSAGE = 1003,
                 // Something happened with the foreign inventory loading.
                 FOREIGN_INVENTORY_LOAD_ERROR = 1004;
+        public final static String EMPTY_MESSAGE = null;
     }
 
     /**
      * Called when an error occurs during the trade such that the trade is
      * closed.
      *
-     * @param eid The error code. Known values are defined in
+     * @param errorCode The error code. Known values are defined in
      * TradeListener.TradeErrorCodes.
+     * @param errorMessage An error message, if available. If not available,
+     * will default to TradeStatusCodes.EMPTY_MESSAGE.
      */
     public abstract void onError(int errorCode, String errorMessage);
 
@@ -67,6 +68,10 @@ public abstract class TradeListener {
      * Called when the client polls the trade. If you want to warn the other
      * person for taking too long, implement this method and add a cancel.
      * Otherwise, just do nothing.
+     *
+     * @param secondsSinceAction Number of seconds since the trading partner has
+     * done something.
+     * @param secondsSinceTrade Number of seconds since the trade has started.
      */
     public abstract void onTimer(int secondsSinceAction, int secondsSinceTrade);
 
@@ -133,7 +138,7 @@ public abstract class TradeListener {
     /**
      * Called when the client receives a TradeEvent that it has no idea how to
      * handle. In this case, a subclass of TradeListener can override this
-     * method to handle the event a bit without having to recompile the library. 
+     * method to handle the event a bit without having to recompile the library.
      *
      * @param event A trade event to be handled manually.
      */

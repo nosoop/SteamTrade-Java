@@ -13,7 +13,6 @@ import bundled.steamtrade.org.json.JSONObject;
  * @author Top-Cat
  */
 public class Status {
-
     public String error;
     public boolean newversion;
     public boolean success;
@@ -32,7 +31,7 @@ public class Status {
             error = "None";
             trade_status = obj.getInt("trade_status");
 
-            if (trade_status == 0) {
+            if (trade_status == TradeStatusCodes.STATUS_OK) {
                 newversion = obj.getBoolean("newversion");
                 version = obj.getInt("version");
                 if (obj.has("logpos")) {
@@ -51,7 +50,7 @@ public class Status {
                 }
             }
         } else {
-            error = obj.optString("error", "(No error message.)");
+            error = obj.optString("error", "No error message.");
 
             /**
              * If there is an error we should know about that isn't defined, we
