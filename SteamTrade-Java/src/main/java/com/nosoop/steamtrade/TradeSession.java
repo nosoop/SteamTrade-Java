@@ -94,7 +94,7 @@ public class TradeSession implements Runnable {
     public void run() {
         synchronized (POLL_LOCK) {
             try {
-                status = getStatus();
+                status = API.getStatus();
             } catch (final JSONException e) {
                 tradeListener.onError(
                         TradeStatusCodes.STATUS_PARSE_ERROR, e.getMessage());
@@ -232,14 +232,14 @@ public class TradeSession implements Runnable {
              * then we will load it.
              */
             if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
-                boolean success = addForeignInventory(evt.appid, evt.contextid);
-                
+                boolean success = API.addForeignInventory(evt.appid, evt.contextid);
+
                 if (!success) {
                     TradeInternalInventory inv = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid);
                     tradeListener.onError(TradeStatusCodes.FOREIGN_INVENTORY_LOAD_ERROR, inv.getErrorMessage());
                 }
             }
-            
+
             final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
@@ -276,7 +276,7 @@ public class TradeSession implements Runnable {
         // TODO Set support for currency?
         if (!isBot) {
             if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
-                addForeignInventory(evt.appid, evt.contextid);
+                API.addForeignInventory(evt.appid, evt.contextid);
             }
             final TradeInternalCurrency item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
 
@@ -308,27 +308,6 @@ public class TradeSession implements Runnable {
     }
 
     /**
-     * Fetches updates to the current trade.
-     *
-     * @return Status object to be processed.
-     * @throws JSONException Malformed / invalid response data.
-     */
-    private Status getStatus() throws JSONException {
-        final Map<String, String> data = new HashMap<>();
-        try {
-            data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        data.put("logpos", "" + logpos);
-        data.put("version", "" + version);
-
-        final String response = API.fetch(TRADE_URL + "tradestatus/", "POST", data);
-
-        return new Status(new JSONObject(response));
-    }
-
-    /**
      * Loads one of our game inventories, storing it in a
      * TradeInternalInventories object.
      *
@@ -347,38 +326,6 @@ public class TradeSession implements Runnable {
         response = API.fetch(url, "GET", null, true);
 
         TRADE_USER_SELF.getInventories().addInventory(appContext, response);
-    }
-
-    /**
-     * Loads a copy of the other person's possibly private inventory, once we
-     * receive an item from it.
-     *
-     * @param appid The game to load the inventory from.
-     * @param contextid The inventory of the game to be loaded.
-     * @return Whether or not the inventory loading was successful.
-     */
-    protected synchronized boolean addForeignInventory(int appid, long contextid) {
-        /**
-         * TODO Make the loading concurrent so it does not hang on large
-         * inventories. ... I'm looking at you, backpack.tf card swap bots. Not
-         * that that's a bad thing - it's just not a good thing.
-         */
-        final Map<String, String> data = new HashMap<>();
-
-        try {
-            data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-        } catch (final UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        data.put("steamid", TRADE_USER_PARTNER.STEAM_ID + "");
-        data.put("appid", appid + "");
-        data.put("contextid", contextid + "");
-
-        String feed = API.fetch(TRADE_URL + "foreigninventory", "GET", data);
-
-        TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
-
-        return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
     }
 
     public long getOwnSteamId() {
@@ -413,7 +360,19 @@ public class TradeSession implements Runnable {
      * @author nosoop
      */
     public class TradeCommands {
+        final String DECODED_SESSION_ID;
+
         TradeCommands() {
+            try {
+                DECODED_SESSION_ID = URLDecoder.decode(SESSION_ID, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                /**
+                 * If you can't decode to UTF-8, well, you're kinda boned. No
+                 * way to get around the issue, I think, so we'll just throw an
+                 * error.
+                 */
+                throw new Error(e);
+            }
         }
 
         /**
@@ -436,17 +395,12 @@ public class TradeSession implements Runnable {
          */
         public void addItem(int appid, long contextid, long assetid, int slot) {
             final Map<String, String> data = new HashMap<>();
-
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
+            data.put("sessionid", DECODED_SESSION_ID);
             data.put("appid", "" + appid);
             data.put("contextid", "" + contextid);
             data.put("itemid", "" + assetid);
             data.put("slot", "" + slot);
+
             fetch(TRADE_URL + "additem", "POST", data);
         }
 
@@ -468,16 +422,11 @@ public class TradeSession implements Runnable {
          */
         public void removeItem(int appid, long contextid, long assetid) {
             final Map<String, String> data = new HashMap<>();
-
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
+            data.put("sessionid", DECODED_SESSION_ID);
             data.put("appid", "" + appid);
             data.put("contextid", "" + contextid);
             data.put("itemid", "" + assetid);
+
             fetch(TRADE_URL + "removeitem", "POST", data);
         }
 
@@ -490,13 +439,10 @@ public class TradeSession implements Runnable {
          */
         public boolean setReady(boolean ready) {
             final Map<String, String> data = new HashMap<>();
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            data.put("sessionid", DECODED_SESSION_ID);
             data.put("ready", ready ? "true" : "false");
             data.put("version", "" + version);
+
             final String response = fetch(TRADE_URL + "toggleready", "POST", data);
             try {
                 Status readyStatus = new Status(new JSONObject(response));
@@ -524,12 +470,9 @@ public class TradeSession implements Runnable {
          */
         public JSONObject acceptTrade() throws JSONException {
             final Map<String, String> data = new HashMap<>();
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            data.put("sessionid", DECODED_SESSION_ID);
             data.put("version", "" + version);
+
             final String response = fetch(TRADE_URL + "confirm", "POST", data);
 
             return new JSONObject(response);
@@ -544,12 +487,7 @@ public class TradeSession implements Runnable {
          */
         public boolean cancelTrade() throws JSONException {
             final Map<String, String> data = new HashMap();
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-
+            data.put("sessionid", DECODED_SESSION_ID);
             final String response = fetch(TRADE_URL + "cancel", "POST", data);
 
             return (new JSONObject(response)).getBoolean("success");
@@ -563,16 +501,56 @@ public class TradeSession implements Runnable {
          */
         public String sendMessage(String message) {
             final Map<String, String> data = new HashMap<>();
-            try {
-                data.put("sessionid", URLDecoder.decode(SESSION_ID, "UTF-8"));
-            } catch (final UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            data.put("sessionid", DECODED_SESSION_ID);
             data.put("message", message);
             data.put("logpos", "" + logpos);
             data.put("version", "" + version);
 
             return fetch(TRADE_URL + "chat", "POST", data);
+        }
+
+        /**
+         * Fetches status updates to the current trade.
+         *
+         * @return Status object to be processed.
+         * @throws JSONException Malformed / invalid response data.
+         */
+        private Status getStatus() throws JSONException {
+            final Map<String, String> data = new HashMap<>();
+            data.put("sessionid", DECODED_SESSION_ID);
+            data.put("logpos", "" + logpos);
+            data.put("version", "" + version);
+
+            final String response = fetch(TRADE_URL + "tradestatus/", "POST", data);
+
+            return new Status(new JSONObject(response));
+        }
+
+        /**
+         * Loads a copy of the other person's possibly private inventory, once
+         * we receive an item from it.
+         *
+         * @param appid The game to load the inventory from.
+         * @param contextid The inventory of the game to be loaded.
+         * @return Whether or not the inventory loading was successful.
+         */
+        protected synchronized boolean addForeignInventory(int appid, long contextid) {
+            /**
+             * TODO Make the loading concurrent so it does not hang on large
+             * inventories. ... I'm looking at you, backpack.tf card swap bots.
+             * Not that that's a bad thing - it's just not a good thing.
+             */
+            final Map<String, String> data = new HashMap<>();
+            data.put("sessionid", DECODED_SESSION_ID);
+            data.put("steamid", TRADE_USER_PARTNER.STEAM_ID + "");
+            data.put("appid", appid + "");
+            data.put("contextid", contextid + "");
+
+            String feed = fetch(TRADE_URL + "foreigninventory", "GET", data);
+
+            TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
+
+            return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
         }
 
         /**
@@ -601,10 +579,8 @@ public class TradeSession implements Runnable {
         String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
             String cookies = "";
             if (sendLoginData) {
-                try {
-                    cookies = "sessionid=" + URLEncoder.encode(SESSION_ID, "UTF-8") + "; steamLogin=" + STEAM_LOGIN + ";";
-                } catch (UnsupportedEncodingException e) {
-                }
+                cookies = "sessionid=" + DECODED_SESSION_ID + "; "
+                        + "steamLogin=" + STEAM_LOGIN + ";";
             }
             final String response = request(url, method, data, cookies);
             return response;
@@ -647,11 +623,19 @@ public class TradeSession implements Runnable {
                  * AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166
                  * Safari/535.19"
                  */
-                conn.setRequestProperty("User-Agent", "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1; en-US; Valve Steam Client/1392853084; SteamTrade-Java Client; ) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Safari/535.19");
+                conn.setRequestProperty("User-Agent",
+                        "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1;"
+                        + " en-US; Valve Steam Client/1392853084;"
+                        + " SteamTrade-Java Client; ) "
+                        + "AppleWebKit/535.19 (KHTML, like Gecko) "
+                        + "Chrome/18.0.1025.166 Safari/535.19");
 
                 conn.setRequestProperty("Host", "steamcommunity.com");
-                conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
-                conn.setRequestProperty("Accept", "text/javascript, text/hml, application/xml, text/xml, */*");
+                conn.setRequestProperty("Content-type",
+                        "application/x-www-form-urlencoded; charset=UTF-8");
+                conn.setRequestProperty("Accept",
+                        "text/javascript, text/hml, "
+                        + "application/xml, text/xml, */*");
 
                 // I don't know why, but we need a referer, otherwise we get a server error response.
                 // Just use our trade URL as the referer since we have it on hand.
