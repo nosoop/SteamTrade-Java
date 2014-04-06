@@ -14,9 +14,15 @@ import java.util.Map;
 public class TradeInternalInventories {
 
     Map<AppContextPair, TradeInternalInventory> gameInventories;
-
+    Map<Integer, AssetBuilder> inventoryLoaders;
+    
     public TradeInternalInventories() {
-        gameInventories = new HashMap<>();
+        this(new HashMap<Integer,AssetBuilder>());
+    }
+    
+    public TradeInternalInventories(Map<Integer,AssetBuilder> assetBuild) {
+        this.inventoryLoaders = assetBuild;
+        this.gameInventories = new HashMap<>();
     }
 
     /**
@@ -38,7 +44,14 @@ public class TradeInternalInventories {
      * @param feed
      */
     public void addInventory(AppContextPair appContext, String feed) {
-        gameInventories.put(appContext, new TradeInternalInventory(feed, appContext));
+        AssetBuilder asset = new AssetBuilder();
+        
+        if (inventoryLoaders.containsKey(appContext.appid)) {
+            asset = inventoryLoaders.get(appContext.appid);
+        }
+        
+        gameInventories.put(appContext,
+                new TradeInternalInventory(feed, appContext, asset));
     }
 
     /**

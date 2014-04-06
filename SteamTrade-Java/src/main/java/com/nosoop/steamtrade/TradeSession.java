@@ -83,14 +83,31 @@ public class TradeSession implements Runnable {
      */
     @SuppressWarnings("LeakingThisInConstructor")
     public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
+        this(steamidSelf, steamidPartner, sessionId, token, listener, new HashMap<Integer, AssetBuilder>());
+    }
+
+    /**
+     * Creates a new trading session.
+     *
+     * @param steamidSelf Long representation of our own SteamID.
+     * @param steamidPartner Long representation of our trading partner's
+     * SteamID.
+     * @param sessionId String value of the Base64-encoded session token.
+     * @param token String value of Steam's login token.
+     * @param listener Trade listener to respond to trade actions.
+     * @param assetBuilders An integer-to-assetbuilder map. The integers refer
+     * to the appid of the inventory to be modified.
+     */
+    @SuppressWarnings("LeakingThisInConstructor")
+    public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener, final Map<Integer, AssetBuilder> assetBuilders) {
         SESSION_ID = sessionId;
         STEAM_LOGIN = token;
 
         tradeListener = listener;
         tradeListener.trade = this;
 
-        TRADE_USER_SELF = new TradeUser(steamidSelf);
-        TRADE_USER_PARTNER = new TradeUser(steamidPartner);
+        TRADE_USER_SELF = new TradeUser(steamidSelf, assetBuilders);
+        TRADE_USER_PARTNER = new TradeUser(steamidPartner, assetBuilders);
 
         TRADE_URL = String.format(STEAM_TRADE_URL, steamidPartner);
         API = new TradeCommands();
@@ -259,7 +276,7 @@ public class TradeSession implements Runnable {
                     tradeListener.onError(TradeStatusCodes.FOREIGN_INVENTORY_LOAD_ERROR, inv.getErrorMessage());
                 }
             }
-            
+
             final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
@@ -311,7 +328,7 @@ public class TradeSession implements Runnable {
                 tradeListener.onUserAddItem(item);
             }
         }
-        
+
         // Add to internal tracking.
         final TradeInternalInventories inv = (isBot
                 ? TRADE_USER_SELF : TRADE_USER_PARTNER).getInventories();
@@ -733,27 +750,27 @@ public class TradeSession implements Runnable {
         final TradeInternalInventories INVENTORIES;
         boolean ready;
 
-        TradeUser(long steamid) {
+        TradeUser(long steamid, Map<Integer, AssetBuilder> assetBuilders) {
             this.STEAM_ID = steamid;
             this.TRADE_OFFER = new HashSet<>();
-            this.INVENTORIES = new TradeInternalInventories();
+            this.INVENTORIES = new TradeInternalInventories(assetBuilders);
             this.ready = false;
         }
 
         public Set<TradeInternalAsset> getOffer() {
             return TRADE_OFFER;
         }
-        
+
         public Set<TradeInternalAsset> getOffer(Class type) {
             Set<TradeInternalAsset> offeredItems = new HashSet<>();
-            
+
             if (!TradeInternalAsset.class.isAssignableFrom(type)) {
                 String exceptionMessage = String.format(
                         "Class %d is not a subclass of TradeInternalAsset",
                         type.getName());
                 throw new IllegalArgumentException(exceptionMessage);
             }
-            
+
             for (TradeInternalAsset item : TRADE_OFFER) {
                 if (type.isInstance(item)) {
                     offeredItems.add(item);

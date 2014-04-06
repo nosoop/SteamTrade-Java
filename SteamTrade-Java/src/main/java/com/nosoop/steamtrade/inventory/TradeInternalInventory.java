@@ -187,10 +187,6 @@ public class TradeInternalInventory {
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
                 try {
-                     /*TradeInternalItem generatedItem = new
-                             TradeInternalItem(appContext, invInstance,
-                             descriptions.get(itemCI));*/
-                     
                     TradeInternalItem generatedItem = assetBuilder.generateItem(appContext, invInstance, descriptions.get(itemCI));
 
                     inventoryItems.add(generatedItem);
@@ -212,9 +208,6 @@ public class TradeInternalInventory {
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
                 try {
-                    /*currencyItems.add(new TradeInternalCurrency(
-                            appContext, invInstance, descriptions.get(itemCI)));*/
-                    
                     TradeInternalCurrency generatedItem = 
                             assetBuilder.generateCurrency(appContext, 
                             invInstance, descriptions.get(itemCI));
