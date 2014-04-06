@@ -215,8 +215,12 @@ public class TradeInternalInventory {
 
                 // Currency amount only shows if it is yours.
                 generatedItem.amount = invInstance.optInt("amount", 0);
+                
+                // Currencies have an id of their own.
+                generatedItem.currencyid = 
+                        Long.parseLong(invInstance.getString("id"));
 
-                inventoryItems.add(generatedItem);
+                currencyItems.add(generatedItem);
             }
         }
     }
