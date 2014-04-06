@@ -19,9 +19,9 @@ The library, if you're unfamiliar with Steam trading, also supports:
   * Did I mention no API key? Of course, you'd need it if you'd like detailed game-specific data, but for on-the-surface stuff, I'd like to think you're covered - for the most part.
 
 Potential additions in the future include support for:
-  * Stackable items and currencies
+  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now as basic as it is; just have to look over and fix up the item event stuff for amounts for both to show up.
   * Threaded inventory loading
-  * Nice, pluggable support to handle game-specific stuff (seriously, the "gifted by" handling is really bad at best and I'd rather not leave TF2-specific code in there)
+  * ~~Nice, pluggable support to handle game-specific stuff (seriously, the "gifted by" handling is really bad at best and I'd rather not leave TF2-specific code in there)~~ Coming along pretty well; support has been added to extend past basic item support.  Not like it's needed _that_ much, but it helps with organizing.  Also not too great with coding conventions, so if there's a preferred method to go about that in Java, do tell.
 
 
 Prerequisites, Dependencies and How-To
@@ -39,6 +39,8 @@ The library has been given a few minor changes to support Java 1.5+ features, ma
 Just a Note
 -----------
 
-This library, while fairly featured and fleshed out for most uses (read: trading of simple, non-stackable, non-currency Steam items), is still undergoing changes in structure, shedding off old stuff and rearranging and streamlining others; be sure to keep an eye on the methods and what various changes there may be.
+This library, while fairly featured and fleshed out for most uses (read: trading of simple, non-stackable, non-currency Steam items), is still undergoing changes in structure, shedding off old stuff and rearranging and streamlining others; be sure to keep an eye on the methods and what various changes there may be.  The example trade listener will be updated to reflect changes as they come.
+
+Probably not going to version this and just keep it as a running snapshot.
 
 Also, the code will be released under the MIT License once the code has been cleaned enough to ensure that copyright is not an issue.
