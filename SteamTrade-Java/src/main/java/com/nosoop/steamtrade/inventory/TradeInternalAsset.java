@@ -42,14 +42,6 @@ public abstract class TradeInternalAsset {
      */
     int amount;
     /**
-     * The Steam appid for the game this object resides in.
-     */
-    int appid;
-    /**
-     * The inventory contextid for the game inventory this object resides in.
-     */
-    long contextid;
-    /**
      * The item id number.
      */
     long assetid;
@@ -106,11 +98,11 @@ public abstract class TradeInternalAsset {
     }
 
     public final int getAppid() {
-        return appid;
+        return appContext.appid;
     }
 
     public final long getContextid() {
-        return contextid;
+        return appContext.contextid;
     }
 
     public final long getAssetid() {
