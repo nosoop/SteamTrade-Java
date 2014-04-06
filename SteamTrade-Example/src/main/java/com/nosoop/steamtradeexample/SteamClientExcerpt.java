@@ -25,6 +25,10 @@ package com.nosoop.steamtradeexample;
 
 import com.nosoop.steamtrade.TradeListener;
 import com.nosoop.steamtrade.TradeSession;
+import com.nosoop.steamtrade.inventory.AssetBuilder;
+import com.nosoop.steamtradeasset.ROT13F2AssetBuilder;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Excerpt snippet to show use of SteamTrade-Java. In this case, we receive a
@@ -34,12 +38,11 @@ import com.nosoop.steamtrade.TradeSession;
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class SteamClientExcerpt {
-
     /**
-     * To access the trading page, we must know the following...
-     * -- The SteamID of our currently signed-in user (in long value format)
-     * -- The Base64-encoded current session identifier from Steam.
-     * -- The Steam login token used for Steam Web services.
+     * To access the trading page, we must know the following... -- The SteamID
+     * of our currently signed-in user (in long value format) -- The
+     * Base64-encoded current session identifier from Steam. -- The Steam login
+     * token used for Steam Web services.
      *
      * Again, you'll probably want to use a reverse-engineered Steam library to
      * access this information and the notification to know when a trade session
@@ -66,13 +69,34 @@ public class SteamClientExcerpt {
         // Start a new thread in the background that polls the thread for updates.
         (new Thread(new TradePoller(currentTrade))).start();
     }
+
+    /**
+     * Receives a callback notifying us that a trade has started. We want to use
+     * custom asset builders (see com.nosoop.steamtradeasset).
+     *
+     * @param callback Callback signaling trade.
+     */
+    public void onNotifiedTradeStartWithModifiedAssetBuilder(MockSessionStartCallback callback) {
+        Map<Integer, AssetBuilder> assetBuilds = new HashMap<>();
+        assetBuilds.put(440, new ROT13F2AssetBuilder());
+        
+        TradeListener listener = new SampleTradeListener();
+        TradeSession currentTrade; // The current trade.
+
+        // Added map at the end of the list.
+        currentTrade = new TradeSession(
+                ourSteamId, callback.tradePartnerSteamId,
+                sessionid, token, listener, assetBuilds);
+
+        // Start a new thread in the background that polls the thread for updates.
+        (new Thread(new TradePoller(currentTrade))).start();
+    }
 }
 
 /**
  * Mock callback data containing the minimum amount to start a trade session.
  */
 class MockSessionStartCallback {
-
     long tradePartnerSteamId;
 }
 
@@ -81,7 +105,6 @@ class MockSessionStartCallback {
  * even after the trade has closed. So don't use this.
  */
 class TradePoller implements Runnable {
-
     TradeSession session;
 
     public TradePoller(TradeSession session) {
