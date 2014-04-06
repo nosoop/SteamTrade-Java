@@ -182,10 +182,8 @@ public class TradeInternalInventory {
                         Integer.parseInt(invInstance.getString("classid")),
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
-                long id = Long.parseLong(invInstance.getString("id"));
-
                 TradeInternalItem generatedItem =
-                        new TradeInternalItem(id, descriptions.get(itemCI));
+                        new TradeInternalItem(invInstance, descriptions.get(itemCI));
 
                 generatedItem.appid = this.appid;
                 generatedItem.contextid = this.contextid;
@@ -207,8 +205,7 @@ public class TradeInternalInventory {
 
                 TradeInternalCurrency generatedItem =
                         new TradeInternalCurrency(
-                        Integer.parseInt(invInstance.getString("id")),
-                        descriptions.get(itemCI));
+                        invInstance, descriptions.get(itemCI));
 
                 generatedItem.appid = this.appid;
                 generatedItem.contextid = this.contextid;

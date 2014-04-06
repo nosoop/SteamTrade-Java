@@ -36,7 +36,7 @@ public class TradeInternalItem {
     // TODO Implementation of stackable items.
     boolean stackable;
 
-    TradeInternalItem(long assetid, JSONObject rgDescriptionItem) throws JSONException {
+    TradeInternalItem(JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
 
         this.displayName = rgDescriptionItem.getString("name");
         this.marketName = rgDescriptionItem.getString("market_name");
@@ -46,11 +46,12 @@ public class TradeInternalItem {
         // --  instanceid represents unique items in that class ("0" = default)
         this.classid = Integer.parseInt(rgDescriptionItem.getString("classid"));
         this.instanceid =
-                Long.parseLong(rgDescriptionItem.getString("instanceid"));
+                Long.parseLong(rgDescriptionItem.optString("instanceid", "0"));
+        // Currency items do not have instance numbers.
 
         this.wasGifted = false;
 
-        this.assetid = assetid;
+        this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
         level = (byte) -1;
 
         isNotCraftable = false;
