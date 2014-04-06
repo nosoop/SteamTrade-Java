@@ -191,7 +191,7 @@ public class TradeSession implements Runnable {
 
         // TODO Link their asset to variable item count.
         if (status.them.assets != null) {
-            //System.out.println(Arrays.toString(status.them.assets.toArray()));
+            System.out.println(java.util.Arrays.toString(status.them.assets.toArray()));
         }
 
         switch (evt.action) {
@@ -228,7 +228,9 @@ public class TradeSession implements Runnable {
                 }
                 break;
             case 6:
-            // TODO Add support for currency.
+                // TODO Add support for currency.
+                eventUserSetCurrencyAmount(evt);
+                break;
             case 8:
             // TODO Add support for stackable items.
             default:
@@ -292,15 +294,34 @@ public class TradeSession implements Runnable {
     private void eventUserSetCurrencyAmount(TradeEvent evt) {
         boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
-        // TODO Set support for currency?
         if (!isBot) {
+            /**
+             * If this is the other user and we don't have their inventory yet,
+             * then we will load it.
+             */
             if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
                 API.addForeignInventory(evt.appid, evt.contextid);
             }
-            final TradeInternalCurrency item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getCurrency(evt.currencyid);
 
-            // TODO Fire event at listener for currency update.
+            TradeInternalCurrency item = TRADE_USER_PARTNER.getInventories()
+                    .getInventory(evt.appid, evt.contextid)
+                    .getCurrency(evt.currencyid);
+
+            if (item != null) {
+                // TODO Add currency event on listener.
+                tradeListener.onUserAddItem(item);
+            }
         }
+        
+        // Add to internal tracking.
+        final TradeInternalInventories inv = (isBot
+                ? TRADE_USER_SELF : TRADE_USER_PARTNER).getInventories();
+
+        final TradeInternalItem item =
+                inv.getInventory(evt.appid, evt.contextid)
+                .getCurrency(evt.currencyid);
+
+        (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getOffer().add(item);
     }
 
     /**
@@ -466,8 +487,8 @@ public class TradeSession implements Runnable {
             try {
                 Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
-                    if (readyStatus.trade_status == 
-                            TradeStatusCodes.STATUS_OK) {
+                    if (readyStatus.trade_status
+                            == TradeStatusCodes.STATUS_OK) {
                         TRADE_USER_PARTNER.ready = readyStatus.them.ready;
                         TRADE_USER_SELF.ready = readyStatus.me.ready;
                     } else {

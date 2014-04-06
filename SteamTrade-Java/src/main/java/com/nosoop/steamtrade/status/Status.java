@@ -19,8 +19,7 @@ public class Status {
     public int trade_status = -1;
     public int version;
     public int logpos;
-    public TradeUserStatus me;
-    public TradeUserStatus them;
+    public TradeUserStatus me, them;
     public List<TradeEvent> events = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
