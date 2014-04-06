@@ -12,7 +12,7 @@ import bundled.steamtrade.org.json.JSONObject;
  * 
  * @author nosoop
  */
-public class TradeInternalCurrency extends TradeInternalItem {
+public class TradeInternalCurrency extends TradeInternalAsset {
     
     long currencyid;
     
@@ -20,8 +20,7 @@ public class TradeInternalCurrency extends TradeInternalItem {
             JSONObject rgDescriptionItem) throws JSONException {
         super(rgCurrencyItem, rgDescriptionItem);
         
-        currencyid = Integer.parseInt(rgCurrencyItem.getString("id"));
-        amount = Integer.parseInt(rgCurrencyItem.getString("amount"));
+        currencyid = Long.parseLong(rgCurrencyItem.getString("id"));
     }
     
     public int getAmount() {

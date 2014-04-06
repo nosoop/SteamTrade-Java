@@ -228,7 +228,6 @@ public class TradeSession implements Runnable {
                 }
                 break;
             case 6:
-                // TODO Add support for currency.
                 eventUserSetCurrencyAmount(evt);
                 break;
             case 8:
@@ -260,7 +259,7 @@ public class TradeSession implements Runnable {
                     tradeListener.onError(TradeStatusCodes.FOREIGN_INVENTORY_LOAD_ERROR, inv.getErrorMessage());
                 }
             }
-
+            
             final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
             tradeListener.onUserAddItem(item);
         }
@@ -308,7 +307,7 @@ public class TradeSession implements Runnable {
                     .getCurrency(evt.currencyid);
 
             if (item != null) {
-                // TODO Add currency event on listener.
+                // TODO Add currency event on listener ?
                 tradeListener.onUserAddItem(item);
             }
         }
@@ -317,7 +316,7 @@ public class TradeSession implements Runnable {
         final TradeInternalInventories inv = (isBot
                 ? TRADE_USER_SELF : TRADE_USER_PARTNER).getInventories();
 
-        final TradeInternalItem item =
+        final TradeInternalCurrency item =
                 inv.getInventory(evt.appid, evt.contextid)
                 .getCurrency(evt.currencyid);
 
@@ -730,7 +729,7 @@ public class TradeSession implements Runnable {
      */
     public static class TradeUser {
         final long STEAM_ID;
-        final Set<TradeInternalItem> TRADE_OFFER;
+        final Set<TradeInternalAsset> TRADE_OFFER;
         final TradeInternalInventories INVENTORIES;
         boolean ready;
 
@@ -741,8 +740,26 @@ public class TradeSession implements Runnable {
             this.ready = false;
         }
 
-        public Set<TradeInternalItem> getOffer() {
+        public Set<TradeInternalAsset> getOffer() {
             return TRADE_OFFER;
+        }
+        
+        public Set<TradeInternalAsset> getOffer(Class type) {
+            Set<TradeInternalAsset> offeredItems = new HashSet<>();
+            
+            if (!TradeInternalAsset.class.isAssignableFrom(type)) {
+                String exceptionMessage = String.format(
+                        "Class %d is not a subclass of TradeInternalAsset",
+                        type.getName());
+                throw new IllegalArgumentException(exceptionMessage);
+            }
+            
+            for (TradeInternalAsset item : TRADE_OFFER) {
+                if (type.isInstance(item)) {
+                    offeredItems.add(item);
+                }
+            }
+            return offeredItems;
         }
 
         public long getSteamID() {

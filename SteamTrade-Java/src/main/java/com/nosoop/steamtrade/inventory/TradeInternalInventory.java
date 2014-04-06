@@ -93,7 +93,7 @@ public class TradeInternalInventory {
 
     /**
      * Returns the error message associated with the error response.
-     * 
+     *
      * @return The JSON error message from the response if the inventory loading
      * was unsuccessful, or an empty string if it was.
      */
@@ -182,13 +182,17 @@ public class TradeInternalInventory {
                         Integer.parseInt(invInstance.getString("classid")),
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
-                TradeInternalItem generatedItem =
-                        new TradeInternalItem(invInstance, descriptions.get(itemCI));
+                try {
+                    TradeInternalItem generatedItem =
+                            new TradeInternalItem(invInstance, descriptions.get(itemCI));
 
-                generatedItem.appid = this.appid;
-                generatedItem.contextid = this.contextid;
+                    generatedItem.appid = this.appid;
+                    generatedItem.contextid = this.contextid;
 
-                inventoryItems.add(generatedItem);
+                    inventoryItems.add(generatedItem);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -203,21 +207,17 @@ public class TradeInternalInventory {
                         Integer.parseInt(invInstance.getString("classid")),
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
-                TradeInternalCurrency generatedItem =
-                        new TradeInternalCurrency(
-                        invInstance, descriptions.get(itemCI));
+                try {
+                    TradeInternalCurrency generatedItem =
+                            new TradeInternalCurrency(
+                            invInstance, descriptions.get(itemCI));
+                    generatedItem.appid = this.appid;
+                    generatedItem.contextid = this.contextid;
 
-                generatedItem.appid = this.appid;
-                generatedItem.contextid = this.contextid;
-
-                // Currency amount only shows if it is yours.
-                generatedItem.amount = invInstance.optInt("amount", 0);
-                
-                // Currencies have an id of their own.
-                generatedItem.currencyid = 
-                        Long.parseLong(invInstance.getString("id"));
-
-                currencyItems.add(generatedItem);
+                    currencyItems.add(generatedItem);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

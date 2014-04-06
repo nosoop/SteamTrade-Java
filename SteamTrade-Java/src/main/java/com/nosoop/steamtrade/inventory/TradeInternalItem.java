@@ -9,16 +9,13 @@ import bundled.steamtrade.org.json.JSONObject;
  *
  * @author nosoop
  */
-public class TradeInternalItem extends TradeInternalObject {
+public class TradeInternalItem extends TradeInternalAsset {
 
     public static final TradeInternalItem UNAVAILABLE = null;
-    long assetid;
     int defIndex;
     byte level;
     byte quality;
     boolean isNotCraftable;
-    int appid;
-    long contextid;
     boolean isTradable;
     boolean wasGifted;
     long instanceid;
@@ -28,8 +25,6 @@ public class TradeInternalItem extends TradeInternalObject {
     public TradeInternalItem(JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
         super(rgInventoryItem, rgDescriptionItem);
 
-        // Unique item identifiers:
-        // --  classid represents similarly unique items (ex: two Loose Cannons)
         // --  instanceid represents unique items in that class ("0" = default)
         this.instanceid =
                 Long.parseLong(rgDescriptionItem.optString("instanceid", "0"));
@@ -37,7 +32,6 @@ public class TradeInternalItem extends TradeInternalObject {
 
         this.wasGifted = false;
 
-        this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
         level = (byte) -1;
 
         isNotCraftable = false;
@@ -73,32 +67,8 @@ public class TradeInternalItem extends TradeInternalObject {
     }
     // TODO Add method to return overridable name instead of using basic display?
 
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getMarketName() {
-        return marketName;
-    }
-
-    public int getAppid() {
-        return appid;
-    }
-
-    public long getContextid() {
-        return contextid;
-    }
-
-    public long getAssetid() {
-        return assetid;
-    }
-
     public long getInstanceid() {
         return instanceid;
-    }
-
-    public int getClassid() {
-        return classid;
     }
 
     /**

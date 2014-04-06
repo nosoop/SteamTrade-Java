@@ -1,6 +1,6 @@
 package com.nosoop.steamtrade;
 
-import com.nosoop.steamtrade.inventory.TradeInternalItem;
+import com.nosoop.steamtrade.inventory.TradeInternalAsset;
 import com.nosoop.steamtrade.status.TradeEvent;
 
 /**
@@ -92,14 +92,14 @@ public abstract class TradeListener {
      *
      * @param inventoryItem The item added to the trade.
      */
-    public abstract void onUserAddItem(TradeInternalItem inventoryItem);
+    public abstract void onUserAddItem(TradeInternalAsset inventoryItem);
 
     /**
      * Called when the other person removes an item.
      *
      * @param inventoryItem The item removed from the trade.
      */
-    public abstract void onUserRemoveItem(TradeInternalItem inventoryItem);
+    public abstract void onUserRemoveItem(TradeInternalAsset inventoryItem);
 
     /**
      * Called when the other client send a message through Steam Trade.
