@@ -554,7 +554,7 @@ public class TradeSession implements Runnable {
          * @param contextid The inventory of the game to be loaded.
          * @return Whether or not the inventory loading was successful.
          */
-        protected synchronized boolean addForeignInventory(int appid, long contextid) {
+        public synchronized boolean addForeignInventory(int appid, long contextid) {
             /**
              * TODO Make the loading concurrent so it does not hang on large
              * inventories. ... I'm looking at you, backpack.tf card swap bots.
