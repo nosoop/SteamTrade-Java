@@ -21,8 +21,7 @@ public class TradeInternalInventory {
     List<TradeInternalItem> inventoryItems;
     // Debating on implementation for currency items.
     List<TradeInternalCurrency> currencyItems;
-    int appid;
-    long contextid;
+    final AppContextPair appContext;
 
     /**
      * Takes a String representation of the JSON data received from trading and
@@ -35,9 +34,8 @@ public class TradeInternalInventory {
      * @param contextid A long value representing the specific inventory context
      * (the 'sub-inventory' for a game, grouping items for an appid).
      */
-    public TradeInternalInventory(String s, int appid, long contextid) {
-        this.appid = appid;
-        this.contextid = contextid;
+    public TradeInternalInventory(String s, AppContextPair appContext) {
+        this.appContext = appContext;
 
         inventoryValid = false;
 
@@ -61,7 +59,7 @@ public class TradeInternalInventory {
      * @return An AppContextPair "key" representing this instance.
      */
     public AppContextPair getAppContextPair() {
-        return new AppContextPair(appid, contextid);
+        return appContext;
     }
 
     /**
@@ -184,10 +182,7 @@ public class TradeInternalInventory {
 
                 try {
                     TradeInternalItem generatedItem =
-                            new TradeInternalItem(invInstance, descriptions.get(itemCI));
-
-                    generatedItem.appid = this.appid;
-                    generatedItem.contextid = this.contextid;
+                            new TradeInternalItem(appContext, invInstance, descriptions.get(itemCI));
 
                     inventoryItems.add(generatedItem);
                 } catch (JSONException e) {
@@ -209,10 +204,8 @@ public class TradeInternalInventory {
 
                 try {
                     TradeInternalCurrency generatedItem =
-                            new TradeInternalCurrency(
+                            new TradeInternalCurrency(appContext,
                             invInstance, descriptions.get(itemCI));
-                    generatedItem.appid = this.appid;
-                    generatedItem.contextid = this.contextid;
 
                     currencyItems.add(generatedItem);
                 } catch (JSONException e) {

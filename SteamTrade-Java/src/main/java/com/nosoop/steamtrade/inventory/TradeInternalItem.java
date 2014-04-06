@@ -22,8 +22,8 @@ public class TradeInternalItem extends TradeInternalAsset {
     // TODO Implementation of stackable items.
     boolean stackable;
 
-    public TradeInternalItem(JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
-        super(rgInventoryItem, rgDescriptionItem);
+    public TradeInternalItem(AppContextPair appContext, JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
+        super(appContext, rgInventoryItem, rgDescriptionItem);
 
         // --  instanceid represents unique items in that class ("0" = default)
         this.instanceid =
@@ -85,7 +85,7 @@ public class TradeInternalItem extends TradeInternalAsset {
 
     @Deprecated
     public boolean isRenamed() {
-        return !marketName.equals(displayName) && displayName.matches("''.*''");
+        return !marketName.equals(name) && name.matches("''.*''");
     }
 
     @Deprecated

@@ -14,6 +14,11 @@ import bundled.steamtrade.org.json.JSONObject;
  */
 public abstract class TradeInternalAsset {
     /**
+     * The inventory this item resides in, as defined by its appid and contextid
+     * pair.
+     */
+    AppContextPair appContext;
+    /**
      * The display name of the item. If the item was renamed (as it could be in
      * TF2, it will be that name.
      */
@@ -56,8 +61,10 @@ public abstract class TradeInternalAsset {
      * @param rgDescriptionItem
      * @throws JSONException
      */
-    TradeInternalAsset(JSONObject rgInventoryItem,
+    TradeInternalAsset(AppContextPair appContext, JSONObject rgInventoryItem,
             JSONObject rgDescriptionItem) throws JSONException {
+        this.appContext = appContext;
+        
         this.name = rgDescriptionItem.getString("name");
         this.marketName = rgDescriptionItem.getString("market_name");
         this.type = rgDescriptionItem.getString("type");

@@ -16,9 +16,10 @@ public class TradeInternalCurrency extends TradeInternalAsset {
     
     long currencyid;
     
-    public TradeInternalCurrency(JSONObject rgCurrencyItem,
-            JSONObject rgDescriptionItem) throws JSONException {
-        super(rgCurrencyItem, rgDescriptionItem);
+    public TradeInternalCurrency(AppContextPair appContext,
+            JSONObject rgCurrencyItem, JSONObject rgDescriptionItem)
+            throws JSONException {
+        super(appContext, rgCurrencyItem, rgDescriptionItem);
         
         currencyid = Long.parseLong(rgCurrencyItem.getString("id"));
     }

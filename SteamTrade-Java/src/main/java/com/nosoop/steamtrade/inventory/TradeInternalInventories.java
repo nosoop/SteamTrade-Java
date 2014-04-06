@@ -27,7 +27,8 @@ public class TradeInternalInventories {
      * @param feed The backpack's JSON data.
      */
     public void addInventory(int appid, long contextid, String feed) {
-        gameInventories.put(getInventoryKey(appid, contextid), new TradeInternalInventory(feed, appid, contextid));
+        AppContextPair appContext = getInventoryKey(appid, contextid);
+        addInventory(appContext, feed);
     }
 
     /**
@@ -37,7 +38,7 @@ public class TradeInternalInventories {
      * @param feed
      */
     public void addInventory(AppContextPair appContext, String feed) {
-        gameInventories.put(appContext, new TradeInternalInventory(feed, appContext.appid, appContext.contextid));
+        gameInventories.put(appContext, new TradeInternalInventory(feed, appContext));
     }
 
     /**
@@ -50,7 +51,7 @@ public class TradeInternalInventories {
      * AppContextPair represented by the given appid and contextid.
      */
     public boolean hasInventory(int appid, long contextid) {
-        return gameInventories.containsKey(getInventoryKey(appid, contextid));
+        return hasInventory(getInventoryKey(appid, contextid));
     }
 
     /**
