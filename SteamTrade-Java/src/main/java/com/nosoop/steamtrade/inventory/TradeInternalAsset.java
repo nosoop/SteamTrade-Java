@@ -24,6 +24,10 @@ public abstract class TradeInternalAsset {
      */
     String marketName;
     /**
+     * The item's type, as obtained from its description.
+     */
+    String type;
+    /**
      * The class number of this object. Two similar items (e.g., a pair of Loose
      * Cannons) will have the same class number.
      */
@@ -56,6 +60,8 @@ public abstract class TradeInternalAsset {
             JSONObject rgDescriptionItem) throws JSONException {
         this.displayName = rgDescriptionItem.getString("name");
         this.marketName = rgDescriptionItem.getString("market_name");
+        this.type = rgDescriptionItem.getString("type");
+        
         this.classid = Integer.parseInt(rgDescriptionItem.getString("classid"));
 
         this.amount = Integer.parseInt(
