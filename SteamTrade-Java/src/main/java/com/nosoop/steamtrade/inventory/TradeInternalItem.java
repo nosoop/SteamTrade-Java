@@ -9,19 +9,9 @@ import bundled.steamtrade.org.json.JSONObject;
  *
  * @author nosoop
  */
-public class TradeInternalItem {
+public class TradeInternalItem extends TradeInternalObject {
 
     public static final TradeInternalItem UNAVAILABLE = null;
-    /**
-     * The display name of the item. If the item was renamed (as it could be in
-     * TF2, it will be that name.
-     */
-    String displayName;
-    /**
-     * The name it would be grouped under in the Steam Community Market. Is
-     * blank if not in the Market.
-     */
-    String marketName;
     long assetid;
     int defIndex;
     byte level;
@@ -31,20 +21,16 @@ public class TradeInternalItem {
     long contextid;
     boolean isTradable;
     boolean wasGifted;
-    int classid;
     long instanceid;
     // TODO Implementation of stackable items.
     boolean stackable;
 
-    TradeInternalItem(JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
-
-        this.displayName = rgDescriptionItem.getString("name");
-        this.marketName = rgDescriptionItem.getString("market_name");
+    public TradeInternalItem(JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
+        super(rgInventoryItem, rgDescriptionItem);
 
         // Unique item identifiers:
         // --  classid represents similarly unique items (ex: two Loose Cannons)
         // --  instanceid represents unique items in that class ("0" = default)
-        this.classid = Integer.parseInt(rgDescriptionItem.getString("classid"));
         this.instanceid =
                 Long.parseLong(rgDescriptionItem.optString("instanceid", "0"));
         // Currency items do not have instance numbers.
@@ -127,10 +113,12 @@ public class TradeInternalItem {
         return defIndex;
     }
 
+    @Deprecated
     public boolean isRenamed() {
         return !marketName.equals(displayName) && displayName.matches("''.*''");
     }
 
+    @Deprecated
     public boolean wasGifted() {
         return wasGifted;
     }

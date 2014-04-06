@@ -14,10 +14,9 @@ import bundled.steamtrade.org.json.JSONObject;
  */
 public class TradeInternalCurrency extends TradeInternalItem {
     
-    int amount;
     long currencyid;
     
-    TradeInternalCurrency(JSONObject rgCurrencyItem,
+    public TradeInternalCurrency(JSONObject rgCurrencyItem,
             JSONObject rgDescriptionItem) throws JSONException {
         super(rgCurrencyItem, rgDescriptionItem);
         
