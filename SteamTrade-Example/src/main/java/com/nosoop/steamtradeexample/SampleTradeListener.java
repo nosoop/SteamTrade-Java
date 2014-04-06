@@ -23,6 +23,7 @@
  */
 package com.nosoop.steamtradeexample;
 
+import bundled.steamtrade.org.json.JSONException;
 import com.nosoop.steamtrade.TradeListener;
 import com.nosoop.steamtrade.inventory.*;
 import java.util.List;
@@ -61,7 +62,11 @@ public class SampleTradeListener extends TradeListener {
                 errorMessage = "Trade failed.";
                 break;
             default:
-                errorMessage = "Unhandled error (eid:" + errorCode + ").";
+                errorMessage = "Unhandled error code " + errorCode + ".";
+        }
+        
+        if (!msg.equals(TradeStatusCodes.EMPTY_MESSAGE)) {
+            errorMessage += " (" + msg + ")";
         }
 
         System.out.println(errorMessage);
@@ -113,12 +118,15 @@ public class SampleTradeListener extends TradeListener {
      * @param inventoryItem
      */
     @Override
-    public void onUserAddItem(TradeInternalItem inventoryItem) {
+    public void onUserAddItem(TradeInternalAsset inventoryItem) {
         trade.getCmds().sendMessage("You added a " + inventoryItem.getMarketName());
 
-        if (inventoryItem.isRenamed()) {
-            System.out.println(inventoryItem.getMarketName());
-            System.out.println("  - named " + inventoryItem.getDisplayName());
+        if (inventoryItem instanceof TradeInternalItem) {
+            TradeInternalItem item = (TradeInternalItem) inventoryItem;
+            if (item.isRenamed()) {
+                System.out.println(inventoryItem.getMarketName());
+                System.out.println("  - named " + inventoryItem.getDisplayName());
+            }
         }
     }
 
@@ -128,7 +136,7 @@ public class SampleTradeListener extends TradeListener {
      * @param inventoryItem
      */
     @Override
-    public void onUserRemoveItem(TradeInternalItem inventoryItem) {
+    public void onUserRemoveItem(TradeInternalAsset inventoryItem) {
         trade.getCmds().sendMessage("You removed a " + inventoryItem.getMarketName());
     }
 
@@ -155,7 +163,7 @@ public class SampleTradeListener extends TradeListener {
     /**
      * Called when our trading partner ticked or unticked the "ready" checkbox.
      * In response, we will do the opposite of what they did so the trade never
-     * happens.
+     * happens, 50% of the time.
      *
      * @param ready Whether or not the checkbox is set.
      */
@@ -163,15 +171,23 @@ public class SampleTradeListener extends TradeListener {
     public void onUserSetReadyState(boolean ready) {
         System.out.println("User is ready: " + ready);
 
-        trade.getCmds().setReady(!ready);
+        if (Math.random() < .5)
+            trade.getCmds().setReady(!ready);
     }
 
     /**
-     * I think this is an event called when the other user accepts the trade? I
-     * have no idea. Going to have to take a look again.
+     * Called when the other user accepts the trade, in case you want to do
+     * something about it.
      */
     @Override
     public void onUserAccept() {
+        trade.getCmds().sendMessage("Hah. Nope. Cancelled.");
+        
+        // TODO Handle JSONException in the library.
+        try {
+            trade.getCmds().cancelTrade();
+        } catch (JSONException ex) {
+        }
     }
 
     /**
@@ -193,14 +209,16 @@ public class SampleTradeListener extends TradeListener {
     public void onTradeSuccess() {
         System.out.println("Items traded.");
 
-        
-        for (TradeInternalItem item : trade.getSelf().getOffer()) {
+
+        for (TradeInternalAsset item : trade.getSelf().getOffer()) {
             // TODO Provide example code to display what items were traded.
         }
     }
 
     /**
      * Called when the trade is done and we should stop polling for updates.
+     * Remember, you can only be in one trade at a time (?), so you should be
+     * telling the client that we are ready for another trade.
      */
     @Override
     public void onTradeClosed() {
