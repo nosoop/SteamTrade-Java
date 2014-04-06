@@ -47,7 +47,7 @@ public abstract class TradeInternalAsset {
     long assetid;
 
     /**
-     * Creates a new TradeInternalObject instance.
+     * Creates a new TradeInternalAsset instance.
      *
      * @param rgInventoryItem
      * @param rgDescriptionItem
