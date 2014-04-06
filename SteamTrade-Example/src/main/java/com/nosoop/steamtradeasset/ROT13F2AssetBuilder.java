@@ -30,6 +30,8 @@ public class ROT13F2AssetBuilder extends AssetBuilder {
     @Override
     public TradeInternalItem generateItem(AppContextPair appContext, JSONObject rgInventory, JSONObject rgDescription) throws JSONException {
         /**
+         * JSON preprocessing (not that you'd ever need to):
+         *
          * Uses the ROT13 cipher on the name and puts it back into the
          * description object to be used in constructing the TradeInternalItem
          * instance.

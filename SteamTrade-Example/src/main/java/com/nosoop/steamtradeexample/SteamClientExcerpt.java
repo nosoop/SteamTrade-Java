@@ -78,8 +78,17 @@ public class SteamClientExcerpt {
      */
     public void onNotifiedTradeStartWithModifiedAssetBuilder(MockSessionStartCallback callback) {
         Map<Integer, AssetBuilder> assetBuilds = new HashMap<>();
+
+        /**
+         * Items from appid:440 (Team Fortress 2) will be read using the
+         * ROT13F2AssetBuilder, which is just a silly asset builder that shifts
+         * every item name by 13 characters.
+         *
+         * Given you have access to the individual items' JSON data, you can get
+         * whatever info you need, pretty much.
+         */
         assetBuilds.put(440, new ROT13F2AssetBuilder());
-        
+
         TradeListener listener = new SampleTradeListener();
         TradeSession currentTrade; // The current trade.
 

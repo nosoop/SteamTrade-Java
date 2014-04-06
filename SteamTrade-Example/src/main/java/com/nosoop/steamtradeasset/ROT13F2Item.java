@@ -16,5 +16,7 @@ import com.nosoop.steamtrade.inventory.TradeInternalItem;
 public class ROT13F2Item extends TradeInternalItem {
     public ROT13F2Item(AppContextPair appContext, JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
         super(appContext, rgInventoryItem, rgDescriptionItem);
+
+        // extend with item info
     }
 }
