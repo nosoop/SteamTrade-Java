@@ -22,6 +22,7 @@ public class TradeInternalInventory {
     // Debating on implementation for currency items.
     List<TradeInternalCurrency> currencyItems;
     final AppContextPair appContext;
+    final AssetBuilder assetBuilder;
 
     /**
      * Takes a String representation of the JSON data received from trading and
@@ -35,7 +36,12 @@ public class TradeInternalInventory {
      * (the 'sub-inventory' for a game, grouping items for an appid).
      */
     public TradeInternalInventory(String s, AppContextPair appContext) {
+        this(s, appContext, new AssetBuilder());
+    }
+    
+    public TradeInternalInventory(String s, AppContextPair appContext, AssetBuilder assetBuilder) {
         this.appContext = appContext;
+        this.assetBuilder = assetBuilder;
 
         inventoryValid = false;
 
@@ -181,8 +187,11 @@ public class TradeInternalInventory {
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
                 try {
-                    TradeInternalItem generatedItem =
-                            new TradeInternalItem(appContext, invInstance, descriptions.get(itemCI));
+                     /*TradeInternalItem generatedItem = new
+                             TradeInternalItem(appContext, invInstance,
+                             descriptions.get(itemCI));*/
+                     
+                    TradeInternalItem generatedItem = assetBuilder.generateItem(appContext, invInstance, descriptions.get(itemCI));
 
                     inventoryItems.add(generatedItem);
                 } catch (JSONException e) {
@@ -203,10 +212,13 @@ public class TradeInternalInventory {
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
                 try {
-                    TradeInternalCurrency generatedItem =
-                            new TradeInternalCurrency(appContext,
+                    /*currencyItems.add(new TradeInternalCurrency(
+                            appContext, invInstance, descriptions.get(itemCI)));*/
+                    
+                    TradeInternalCurrency generatedItem = 
+                            assetBuilder.generateCurrency(appContext, 
                             invInstance, descriptions.get(itemCI));
-
+                    
                     currencyItems.add(generatedItem);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -214,48 +226,49 @@ public class TradeInternalInventory {
             }
         }
     }
-}
-
-/**
- * Utility class to identify class-instance pairs.
- *
- * @author nosoop < nosoop at users.noreply.github.com >
- */
-class ClassInstancePair {
-    int classid;
-    long instanceid;
 
     /**
-     * Creates a class-instance pair.
+     * Utility class to identify class-instance pairs.
      *
-     * @param classid
-     * @param instanceid
+     * @author nosoop < nosoop at users.noreply.github.com >
      */
-    ClassInstancePair(int classid, long instanceid) {
-        this.classid = classid;
-        this.instanceid = instanceid;
+    protected class ClassInstancePair {
+        int classid;
+        long instanceid;
+
+        /**
+         * Creates a class-instance pair.
+         *
+         * @param classid
+         * @param instanceid
+         */
+        ClassInstancePair(int classid, long instanceid) {
+            this.classid = classid;
+            this.instanceid = instanceid;
+        }
+
+        @Override
+        public int hashCode() {
+            return 497 * classid + (int) instanceid;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ClassInstancePair other = (ClassInstancePair) obj;
+            if (this.classid != other.classid) {
+                return false;
+            }
+            if (this.instanceid != other.instanceid) {
+                return false;
+            }
+            return true;
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return 497 * classid + (int) instanceid;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final ClassInstancePair other = (ClassInstancePair) obj;
-        if (this.classid != other.classid) {
-            return false;
-        }
-        if (this.instanceid != other.instanceid) {
-            return false;
-        }
-        return true;
-    }
 }
