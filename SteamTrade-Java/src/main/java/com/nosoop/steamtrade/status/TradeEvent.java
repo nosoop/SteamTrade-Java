@@ -38,7 +38,7 @@ public class TradeEvent {
                 // Trade accepted
                 TRADE_ACCEPTED = 4,
                 // ? - maybe some sort of cancel
-                // 5
+                UNKNOWN_EVENT_5 = 5,
                 // Add / remove currency.
                 // (SK Crowns / Energy are, other stackables are not.)
                 CURRENCY_CHANGED = 6,
