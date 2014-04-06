@@ -17,7 +17,7 @@ public abstract class TradeInternalAsset {
      * The display name of the item. If the item was renamed (as it could be in
      * TF2, it will be that name.
      */
-    String displayName;
+    String name;
     /**
      * The name it would be grouped under in the Steam Community Market. Is
      * blank if not in the Market.
@@ -58,10 +58,10 @@ public abstract class TradeInternalAsset {
      */
     TradeInternalAsset(JSONObject rgInventoryItem,
             JSONObject rgDescriptionItem) throws JSONException {
-        this.displayName = rgDescriptionItem.getString("name");
+        this.name = rgDescriptionItem.getString("name");
         this.marketName = rgDescriptionItem.getString("market_name");
         this.type = rgDescriptionItem.getString("type");
-        
+
         this.classid = Integer.parseInt(rgDescriptionItem.getString("classid"));
 
         this.amount = Integer.parseInt(
@@ -69,27 +69,48 @@ public abstract class TradeInternalAsset {
         this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
     }
 
+    /**
+     * Returns the display name of this asset, defaulting to its name. Allowed
+     * to be overridden by subclasses.
+     *
+     * @return String representing the name of this asset.
+     */
     public String getDisplayName() {
-        return displayName;
+        return getName();
     }
 
-    public String getMarketName() {
+    /**
+     * Returns the name of this asset.
+     *
+     * @return
+     */
+    public final String getName() {
+        return name;
+    }
+
+    /**
+     * Returns the market name of this asset.
+     *
+     * @return The market name of this asset. If it does not have a market name,
+     * it returns an empty string.
+     */
+    public final String getMarketName() {
         return marketName;
     }
 
-    public int getAppid() {
+    public final int getAppid() {
         return appid;
     }
 
-    public long getContextid() {
+    public final long getContextid() {
         return contextid;
     }
 
-    public long getAssetid() {
+    public final long getAssetid() {
         return assetid;
     }
 
-    public int getClassid() {
+    public final int getClassid() {
         return classid;
     }
 }
