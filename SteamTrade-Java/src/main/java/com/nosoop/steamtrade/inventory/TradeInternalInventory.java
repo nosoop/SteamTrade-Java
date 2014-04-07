@@ -35,19 +35,17 @@ public class TradeInternalInventory {
      * @param contextid A long value representing the specific inventory context
      * (the 'sub-inventory' for a game, grouping items for an appid).
      */
-    public TradeInternalInventory(String s, AppContextPair appContext) {
+    public TradeInternalInventory(JSONObject s, AppContextPair appContext) {
         this(s, appContext, new AssetBuilder());
     }
     
-    public TradeInternalInventory(String s, AppContextPair appContext, AssetBuilder assetBuilder) {
+    public TradeInternalInventory(JSONObject json, AppContextPair appContext, AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;
 
         inventoryValid = false;
 
         try {
-            JSONObject json = new JSONObject(s);
-
             if (json.getBoolean("success")) {
                 parseInventory(json);
             }

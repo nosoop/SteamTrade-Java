@@ -49,7 +49,9 @@ public abstract class TradeListener {
                 // Unknown status -- message provided by the Status instance.
                 STATUS_ERRORMESSAGE = 1003,
                 // Something happened with the foreign inventory loading.
-                FOREIGN_INVENTORY_LOAD_ERROR = 1004;
+                FOREIGN_INVENTORY_LOAD_ERROR = 1004,
+                // Something happened with our own inventory loading.
+                OWN_INVENTORY_LOAD_ERROR = 1005;
         public final static String EMPTY_MESSAGE = null;
     }
 

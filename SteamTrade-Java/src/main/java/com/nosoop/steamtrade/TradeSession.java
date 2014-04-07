@@ -380,8 +380,14 @@ public class TradeSession implements Runnable {
         url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", TRADE_USER_SELF.STEAM_ID, appContext.getAppid(), appContext.getContextid());
 
         response = API.fetch(url, "GET", null, true);
-
-        TRADE_USER_SELF.getInventories().addInventory(appContext, response);
+        
+        try {
+            JSONObject repsonseObject = new JSONObject(response);
+            TRADE_USER_SELF.getInventories().addInventory(appContext, repsonseObject);
+        } catch (JSONException e) {
+            tradeListener.onError(TradeStatusCodes.OWN_INVENTORY_LOAD_ERROR,
+                    e.getMessage());
+        }
     }
 
     public long getOwnSteamId() {
@@ -604,10 +610,17 @@ public class TradeSession implements Runnable {
             data.put("contextid", contextid + "");
 
             String feed = fetch(TRADE_URL + "foreigninventory", "GET", data);
+            
+            try {
+                JSONObject jsonData = new JSONObject(feed);
 
-            TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, feed);
+                
+                TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, jsonData);
 
-            return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
+                return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
+            } catch (JSONException e) {
+                return false;
+            }
         }
 
         /**

@@ -1,5 +1,6 @@
 package com.nosoop.steamtrade.inventory;
 
+import bundled.steamtrade.org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,7 @@ public class TradeInternalInventories {
      * @param contextid The inventory's contextid.
      * @param feed The backpack's JSON data.
      */
-    public void addInventory(int appid, long contextid, String feed) {
+    public void addInventory(int appid, long contextid, JSONObject feed) {
         AppContextPair appContext = getInventoryKey(appid, contextid);
         addInventory(appContext, feed);
     }
@@ -43,7 +44,7 @@ public class TradeInternalInventories {
      * @param appContext
      * @param feed
      */
-    public void addInventory(AppContextPair appContext, String feed) {
+    public void addInventory(AppContextPair appContext, JSONObject feed) {
         AssetBuilder asset = new AssetBuilder();
         
         if (inventoryLoaders.containsKey(appContext.appid)) {
