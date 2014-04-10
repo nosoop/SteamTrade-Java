@@ -123,10 +123,7 @@ public class SampleTradeListener extends TradeListener {
 
         if (inventoryItem instanceof TradeInternalItem) {
             TradeInternalItem item = (TradeInternalItem) inventoryItem;
-            if (item.isRenamed()) {
-                System.out.println(inventoryItem.getMarketName());
-                System.out.println("  - named " + inventoryItem.getDisplayName());
-            }
+            System.out.println(item.getName());
         }
     }
 
