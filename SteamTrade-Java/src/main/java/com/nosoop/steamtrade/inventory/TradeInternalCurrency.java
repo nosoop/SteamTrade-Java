@@ -24,10 +24,6 @@ public class TradeInternalCurrency extends TradeInternalAsset {
         currencyid = Long.parseLong(rgCurrencyItem.getString("id"));
     }
     
-    public int getAmount() {
-        return amount;
-    }
-    
     public long getCurrencyId() {
         return currencyid;
     }
