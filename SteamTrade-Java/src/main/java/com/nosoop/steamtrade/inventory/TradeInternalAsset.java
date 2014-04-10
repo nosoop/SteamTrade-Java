@@ -64,7 +64,7 @@ public abstract class TradeInternalAsset {
         this.classid = Integer.parseInt(rgDescriptionItem.getString("classid"));
 
         this.amount = Integer.parseInt(
-                rgInventoryItem.optString("amount", "-1"));
+                rgInventoryItem.optString("amount", "1"));
         this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
     }
 
@@ -111,5 +111,13 @@ public abstract class TradeInternalAsset {
 
     public final int getClassid() {
         return classid;
+    }
+
+    public final int getAmount() {
+        return amount;
+    }
+
+    public final String getType() {
+        return type;
     }
 }
