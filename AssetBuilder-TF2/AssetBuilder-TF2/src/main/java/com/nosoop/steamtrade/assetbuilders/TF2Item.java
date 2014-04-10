@@ -17,8 +17,18 @@ import com.nosoop.steamtrade.inventory.TradeInternalItem;
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class TF2Item extends TradeInternalItem {
+    /**
+     * Whether or not the item was an item put into gift wrap.
+     */
     boolean wasGifted;
+    /**
+     * The defindex of the item. Good to have if you'd like to refer to the
+     * schema for some reason.
+     */
     int defIndex;
+    /**
+     * The quality indicator of the item. Also only good with the schema.
+     */
     byte quality;
 
     public TF2Item(AppContextPair appContext, JSONObject rgInventoryItem,
@@ -85,7 +95,7 @@ public class TF2Item extends TradeInternalItem {
         if (this.wasGifted) {
             invName = String.format("%s (gifted)", invName);
         }
-        
+
         // TODO Format item for unusual effect, etc?
 
         return invName;
