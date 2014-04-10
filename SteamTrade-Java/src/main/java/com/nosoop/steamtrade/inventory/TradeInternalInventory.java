@@ -53,6 +53,16 @@ public class TradeInternalInventory {
             e.printStackTrace();
         }
     }
+    
+    public void loadMore(JSONObject json) {
+        try {
+            if (json.getBoolean("success")) {
+                parseInventory(json);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Gets the AppContextPair associated with the inventory. Example: A Team

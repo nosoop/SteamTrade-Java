@@ -380,7 +380,7 @@ public class TradeSession implements Runnable {
         url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", TRADE_USER_SELF.STEAM_ID, appContext.getAppid(), appContext.getContextid());
 
         response = API.fetch(url, "GET", null, true);
-        
+
         try {
             JSONObject repsonseObject = new JSONObject(response);
             TRADE_USER_SELF.getInventories().addInventory(appContext, repsonseObject);
@@ -609,14 +609,40 @@ public class TradeSession implements Runnable {
             data.put("appid", appid + "");
             data.put("contextid", contextid + "");
 
-            String feed = fetch(TRADE_URL + "foreigninventory", "GET", data);
-            
+            /**
+             * Thinking this should just return a JSONObject and do a single
+             * passthrough. If there is more to load, have the inventory load it
+             * manually?
+             */
             try {
-                JSONObject jsonData = new JSONObject(feed);
+                final AppContextPair acp = new AppContextPair(appid, contextid);
 
-                
-                TRADE_USER_PARTNER.getInventories().addInventory(appid, contextid, jsonData);
+                boolean hasMore;
+                do {
+                    /**
+                     * For large inventories.
+                     *
+                     * Valve made it so you load 2500 items per
+                     */
+                    String feed = fetch(TRADE_URL + "foreigninventory/", "GET", data);
+                    System.out.println(feed);
 
+                    JSONObject jsonData = new JSONObject(feed);
+
+                    if (!TRADE_USER_PARTNER.INVENTORIES.hasInventory(acp)) {
+                        TRADE_USER_PARTNER.INVENTORIES.addInventory(acp, jsonData);
+                    } else {
+                        TradeInternalInventory inv = TRADE_USER_PARTNER.INVENTORIES.getInventory(acp);
+
+                        inv.loadMore(jsonData);
+                    }
+
+                    hasMore = jsonData.optBoolean("more");
+
+                    if (hasMore) {
+                        data.put("start", jsonData.getInt("more_start") + "");
+                    }
+                } while (hasMore);
                 return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
             } catch (JSONException e) {
                 return false;
