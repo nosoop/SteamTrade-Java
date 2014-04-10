@@ -422,6 +422,14 @@ public class TradeSession implements Runnable {
      * @author nosoop
      */
     public class TradeCommands {
+        /**
+         * The user-agent string to use when making requests.
+         */
+        final static String USER_AGENT = "SteamTrade-Java/1.0 "
+                + "(Windows; U; Windows NT 6.1; en-US; "
+                + "Valve Steam Client/1392853084; SteamTrade-Java Client; ) "
+                + "AppleWebKit/535.19 (KHTML, like Gecko) "
+                + "Chrome/18.0.1025.166 Safari/535.19";
         final String DECODED_SESSION_ID;
 
         TradeCommands() {
@@ -448,7 +456,8 @@ public class TradeSession implements Runnable {
         }
 
         /**
-         * Adds an item to the trade manually.
+         * Adds an item to the trade directly, as opposed to using a
+         * TradeInternalItem instance..
          *
          * @param appid The game inventory for the item.
          * @param contextid The inventory "context" for the item.
@@ -476,7 +485,8 @@ public class TradeSession implements Runnable {
         }
 
         /**
-         * Removes an item from the trade manually.
+         * Removes an item from the trade directly, as opposed to using a
+         * TradeInternalItem instance.
          *
          * @param appid The game inventory for the item.
          * @param contextid The inventory "context" for the item.
@@ -712,19 +722,7 @@ public class TradeSession implements Runnable {
                 conn.setRequestMethod(method);
                 System.setProperty("http.agent", "");
 
-                /**
-                 * Previous User-Agent String for reference: "Mozilla/5.0
-                 * (Windows; U; Windows NT 6.1; en-US; Valve Steam
-                 * Client/1392853084; SteamTrade-Java Client; )
-                 * AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166
-                 * Safari/535.19"
-                 */
-                conn.setRequestProperty("User-Agent",
-                        "SteamTrade-Java/1.0 (Windows; U; Windows NT 6.1;"
-                        + " en-US; Valve Steam Client/1392853084;"
-                        + " SteamTrade-Java Client; ) "
-                        + "AppleWebKit/535.19 (KHTML, like Gecko) "
-                        + "Chrome/18.0.1025.166 Safari/535.19");
+                conn.setRequestProperty("User-Agent", USER_AGENT);
 
                 conn.setRequestProperty("Host", "steamcommunity.com");
                 conn.setRequestProperty("Content-type",
@@ -747,10 +745,11 @@ public class TradeSession implements Runnable {
 
                 if (method.equals("POST")) {
                     conn.setDoOutput(true);
-                    try (OutputStreamWriter os = new OutputStreamWriter(conn.getOutputStream())) {
-                        os.write(dataString.substring(0, dataString.length() - 1));
+                    try (OutputStreamWriter os =
+                            new OutputStreamWriter(conn.getOutputStream())) {
+                        os.write(dataString.substring(0,
+                                dataString.length() - 1));
                         os.flush();
-                        os.close();
                     }
                 }
 
@@ -760,8 +759,10 @@ public class TradeSession implements Runnable {
                 if (conn.getContentEncoding().contains("gzip")) {
                     netStream = new java.util.zip.GZIPInputStream(netStream);
                 }
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(netStream))) {
-                    String line; // Stores an individual line currently being read.
+
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(netStream))) {
+                    String line; // Stores the currently read line.
                     while ((line = reader.readLine()) != null) {
                         if (out.length() > 0) {
                             out.append('\n');
