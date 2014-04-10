@@ -208,7 +208,7 @@ public class TradeSession implements Runnable {
 
         // TODO Link their asset to variable item count.
         if (status.them.assets != null) {
-            System.out.println(java.util.Arrays.toString(status.them.assets.toArray()));
+            //System.out.println(java.util.Arrays.toString(status.them.assets.toArray()));
         }
 
         switch (evt.action) {
@@ -619,42 +619,53 @@ public class TradeSession implements Runnable {
             data.put("appid", appid + "");
             data.put("contextid", contextid + "");
 
-            /**
-             * Thinking this should just return a JSONObject and do a single
-             * passthrough. If there is more to load, have the inventory load it
-             * manually?
-             */
+            
             try {
                 final AppContextPair acp = new AppContextPair(appid, contextid);
 
                 boolean hasMore;
+
+                /**
+                 * Do repeated loads For large inventories. Valve made it so you
+                 * load ~2500 items at a time.
+                 *
+                 * TODO If at all possible, add dynamic loading code to only
+                 * load items when needed. It /might/ be doable if we made
+                 * TradeInternalInventory an inner class of
+                 * TradeInternalInventories and passed this API instance to
+                 * that, but for now.
+                 */
                 do {
-                    /**
-                     * For large inventories.
-                     *
-                     * Valve made it so you load 2500 items per
-                     */
                     String feed = fetch(TRADE_URL + "foreigninventory/", "GET", data);
-                    System.out.println(feed);
 
                     JSONObject jsonData = new JSONObject(feed);
 
                     if (!TRADE_USER_PARTNER.INVENTORIES.hasInventory(acp)) {
+                        /**
+                         * Make a nonexistent inventory if needed.
+                         */
                         TRADE_USER_PARTNER.INVENTORIES.addInventory(acp, jsonData);
                     } else {
+                        /**
+                         * Otherwise, grab the referring inventory and pass more
+                         * data to it.
+                         */
                         TradeInternalInventory inv = TRADE_USER_PARTNER.INVENTORIES.getInventory(acp);
 
                         inv.loadMore(jsonData);
                     }
 
+                    // Check if there is more to the inventory.
                     hasMore = jsonData.optBoolean("more");
 
                     if (hasMore) {
+                        // Shift the start position.
                         data.put("start", jsonData.getInt("more_start") + "");
                     }
                 } while (hasMore);
                 return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
             } catch (JSONException e) {
+                // Something wrong happened.
                 return false;
             }
         }

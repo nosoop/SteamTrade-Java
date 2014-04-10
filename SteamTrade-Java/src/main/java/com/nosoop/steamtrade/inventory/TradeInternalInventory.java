@@ -38,12 +38,15 @@ public class TradeInternalInventory {
     public TradeInternalInventory(JSONObject s, AppContextPair appContext) {
         this(s, appContext, new AssetBuilder());
     }
-    
+
     public TradeInternalInventory(JSONObject json, AppContextPair appContext, AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;
 
         inventoryValid = false;
+
+        inventoryItems = new ArrayList<>();
+        currencyItems = new ArrayList<>();
 
         try {
             if (json.getBoolean("success")) {
@@ -53,7 +56,11 @@ public class TradeInternalInventory {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * For large inventories, load additional inventory data.
+     * @param json
+     */
     public void loadMore(JSONObject json) {
         try {
             if (json.getBoolean("success")) {
@@ -166,9 +173,6 @@ public class TradeInternalInventory {
             errorMessage = json.getString("error");
         }
 
-        inventoryItems = new ArrayList<>();
-        currencyItems = new ArrayList<>();
-
         // Convenience map to associate class/instance to description.
         Map<ClassInstancePair, JSONObject> descriptions = new HashMap<>();
         JSONObject rgDescriptions = json.optJSONObject("rgDescriptions");
@@ -216,10 +220,10 @@ public class TradeInternalInventory {
                         Long.parseLong(invInstance.optString("instanceid", "0")));
 
                 try {
-                    TradeInternalCurrency generatedItem = 
-                            assetBuilder.generateCurrency(appContext, 
+                    TradeInternalCurrency generatedItem =
+                            assetBuilder.generateCurrency(appContext,
                             invInstance, descriptions.get(itemCI));
-                    
+
                     currencyItems.add(generatedItem);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -233,7 +237,7 @@ public class TradeInternalInventory {
      *
      * @author nosoop < nosoop at users.noreply.github.com >
      */
-    protected class ClassInstancePair {
+    protected static class ClassInstancePair {
         int classid;
         long instanceid;
 
