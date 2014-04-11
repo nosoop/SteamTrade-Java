@@ -27,18 +27,6 @@ public class TradeInternalInventories {
     }
 
     /**
-     * Adds a new inventory to the collection using an unnamed AppContextPair.
-     *
-     * @param appid The game's appid.
-     * @param contextid The inventory's contextid.
-     * @param feed The backpack's JSON data.
-     */
-    public void addInventory(int appid, long contextid, JSONObject feed) {
-        AppContextPair appContext = getInventoryKey(appid, contextid);
-        addInventory(appContext, feed);
-    }
-
-    /**
      * Adds a new inventory to the collection using a given AppContextPair.
      *
      * @param appContext
@@ -53,6 +41,17 @@ public class TradeInternalInventories {
         
         gameInventories.put(appContext,
                 new TradeInternalInventory(feed, appContext, asset));
+    }
+    
+    public void addInventory(AppContextPair appContext) {
+        AssetBuilder asset = new AssetBuilder();
+        
+        if (inventoryLoaders.containsKey(appContext.appid)) {
+            asset = inventoryLoaders.get(appContext.appid);
+        }
+        
+        gameInventories.put(appContext, 
+                new TradeInternalInventory(appContext, asset));
     }
 
     /**

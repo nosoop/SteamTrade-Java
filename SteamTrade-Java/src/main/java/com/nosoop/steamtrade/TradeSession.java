@@ -268,17 +268,24 @@ public class TradeSession implements Runnable {
              * If this is the other user and we don't have their inventory yet,
              * then we will load it.
              */
-            if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
-                boolean success = API.addForeignInventory(evt.appid, evt.contextid);
+            TradeInternalInventory userInv;
+            TradeInternalItem item;
+            do {
+                userInv = API.loadForeignInventory(new AppContextPair(evt.appid, evt.contextid));
+                item = userInv.getItem(evt.assetid);
+            } while (item == null && userInv.hasMore());
 
-                if (!success) {
-                    TradeInternalInventory inv = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid);
-                    tradeListener.onError(TradeStatusCodes.FOREIGN_INVENTORY_LOAD_ERROR, inv.getErrorMessage());
-                }
+            if (item != null) {
+                tradeListener.onUserAddItem(item);
+            } else {
+                // If null after loading the inventory, something's fishy.
+                String errorMsg = "Could not load item asset %d in inventory "
+                        + "with appid %d and contextid %d.";
+                
+                tradeListener.onError(TradeStatusCodes.USER_ITEM_NOT_FOUND,
+                        String.format(errorMsg, evt.assetid, evt.appid, 
+                        evt.contextid));
             }
-
-            final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
-            tradeListener.onUserAddItem(item);
         }
 
         // Add to internal tracking.
@@ -314,17 +321,18 @@ public class TradeSession implements Runnable {
             /**
              * If this is the other user and we don't have their inventory yet,
              * then we will load it.
+             *
+             * Keep loading the rest of the partial inventory until the item is
+             * found.
              */
-            if (!TRADE_USER_PARTNER.getInventories().hasInventory(evt.appid, evt.contextid)) {
-                API.addForeignInventory(evt.appid, evt.contextid);
-            }
-
-            TradeInternalCurrency item = TRADE_USER_PARTNER.getInventories()
-                    .getInventory(evt.appid, evt.contextid)
-                    .getCurrency(evt.currencyid);
+            TradeInternalInventory userInv;
+            TradeInternalCurrency item;
+            do {
+                userInv = API.loadForeignInventory(new AppContextPair(evt.appid, evt.contextid));
+                item = userInv.getCurrency(evt.assetid);
+            } while (item == null && userInv.hasMore());
 
             if (item != null) {
-                // TODO Add currency event on listener ?
                 tradeListener.onUserAddItem(item);
             }
         }
@@ -377,6 +385,7 @@ public class TradeSession implements Runnable {
             return;
         }
 
+        // TODO Add support for large inventories ourselves.
         url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", TRADE_USER_SELF.STEAM_ID, appContext.getAppid(), appContext.getContextid());
 
         response = API.fetch(url, "GET", null, true);
@@ -599,74 +608,40 @@ public class TradeSession implements Runnable {
             return new Status(new JSONObject(response));
         }
 
-        /**
-         * Loads a copy of the other person's possibly private inventory, once
-         * we receive an item from it.
-         *
-         * @param appid The game to load the inventory from.
-         * @param contextid The inventory of the game to be loaded.
-         * @return Whether or not the inventory loading was successful.
-         */
-        public synchronized boolean addForeignInventory(int appid, long contextid) {
-            /**
-             * TODO Make the loading concurrent so it does not hang on large
-             * inventories. ... I'm looking at you, backpack.tf card swap bots.
-             * Not that that's a bad thing - it's just not a good thing.
-             */
+        public synchronized TradeInternalInventory loadForeignInventory(
+                AppContextPair appContext) {
             final Map<String, String> data = new HashMap<>();
             data.put("sessionid", DECODED_SESSION_ID);
             data.put("steamid", TRADE_USER_PARTNER.STEAM_ID + "");
-            data.put("appid", appid + "");
-            data.put("contextid", contextid + "");
+            data.put("appid", appContext.getAppid() + "");
+            data.put("contextid", appContext.getContextid() + "");
 
-            
-            try {
-                final AppContextPair acp = new AppContextPair(appid, contextid);
 
-                boolean hasMore;
-
+            if (!TRADE_USER_PARTNER.INVENTORIES.hasInventory(appContext)) {
                 /**
-                 * Do repeated loads For large inventories. Valve made it so you
-                 * load ~2500 items at a time.
-                 *
-                 * TODO If at all possible, add dynamic loading code to only
-                 * load items when needed. It /might/ be doable if we made
-                 * TradeInternalInventory an inner class of
-                 * TradeInternalInventories and passed this API instance to
-                 * that, but for now.
+                 * Make a nonexistent inventory if needed.
                  */
-                do {
-                    String feed = fetch(TRADE_URL + "foreigninventory/", "GET", data);
+                TRADE_USER_PARTNER.INVENTORIES.addInventory(appContext);
+            }
 
-                    JSONObject jsonData = new JSONObject(feed);
+            TradeInternalInventory inventory =
+                    TRADE_USER_PARTNER.INVENTORIES.getInventory(appContext);
 
-                    if (!TRADE_USER_PARTNER.INVENTORIES.hasInventory(acp)) {
-                        /**
-                         * Make a nonexistent inventory if needed.
-                         */
-                        TRADE_USER_PARTNER.INVENTORIES.addInventory(acp, jsonData);
-                    } else {
-                        /**
-                         * Otherwise, grab the referring inventory and pass more
-                         * data to it.
-                         */
-                        TradeInternalInventory inv = TRADE_USER_PARTNER.INVENTORIES.getInventory(acp);
+            if (inventory.getMoreStartPosition() != 0 || inventory.hasMore()) {
+                data.put("start", inventory.getMoreStartPosition() + "");
+            }
 
-                        inv.loadMore(jsonData);
-                    }
 
-                    // Check if there is more to the inventory.
-                    hasMore = jsonData.optBoolean("more");
+            try {
+                String feed = fetch(TRADE_URL + "foreigninventory/", "GET", data);
 
-                    if (hasMore) {
-                        // Shift the start position.
-                        data.put("start", jsonData.getInt("more_start") + "");
-                    }
-                } while (hasMore);
-                return TRADE_USER_PARTNER.getInventories().getInventory(appid, contextid).isValid();
+                JSONObject jsonData = new JSONObject(feed);
+
+                inventory.loadMore(jsonData);
+                return inventory;
             } catch (JSONException e) {
-                // Something wrong happened.
-                return false;
+                // Something wrong happened...
+                return inventory;
             }
         }
 

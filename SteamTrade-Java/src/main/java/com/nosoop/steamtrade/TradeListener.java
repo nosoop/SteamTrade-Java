@@ -51,7 +51,9 @@ public abstract class TradeListener {
                 // Something happened with the foreign inventory loading.
                 FOREIGN_INVENTORY_LOAD_ERROR = 1004,
                 // Something happened with our own inventory loading.
-                OWN_INVENTORY_LOAD_ERROR = 1005;
+                OWN_INVENTORY_LOAD_ERROR = 1005,
+                // The item specified could not be found in the inventory.
+                USER_ITEM_NOT_FOUND = 1006;
         public final static String EMPTY_MESSAGE = null;
     }
 

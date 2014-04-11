@@ -2,6 +2,7 @@ package com.nosoop.steamtrade.inventory;
 
 import bundled.steamtrade.org.json.JSONObject;
 import bundled.steamtrade.org.json.JSONException;
+import com.nosoop.steamtrade.TradeListener.TradeStatusCodes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,11 +19,42 @@ import java.util.Set;
 public class TradeInternalInventory {
     boolean inventoryValid;
     String errorMessage;
-    List<TradeInternalItem> inventoryItems;
-    // Debating on implementation for currency items.
-    List<TradeInternalCurrency> currencyItems;
+    /**
+     * List of items in the inventory, mapped to its assetid.
+     *
+     * Opted for a map for performance benefits when looking up an item by its
+     * assetid in large inventories.
+     */
+    Map<Long, TradeInternalItem> inventoryItems;
+    /**
+     * List of currency items in the inventory, mapped to its currencyid.
+     *
+     * Should be fine as a list, but for now.
+     */
+    Map<Long, TradeInternalCurrency> currencyItems;
     final AppContextPair appContext;
     final AssetBuilder assetBuilder;
+    /**
+     * Whether or not there is more to load in the inventory.
+     */
+    boolean hasMore;
+    /**
+     * The start position to load from.
+     */
+    int moreStartPosition;
+
+    public TradeInternalInventory(AppContextPair appContext, AssetBuilder assetBuilder) {
+        this.appContext = appContext;
+        this.assetBuilder = assetBuilder;
+
+        inventoryValid = false;
+
+        inventoryItems = new HashMap<>();
+        currencyItems = new HashMap<>();
+
+        hasMore = false;
+        moreStartPosition = 0;
+    }
 
     /**
      * Takes a String representation of the JSON data received from trading and
@@ -45,8 +77,11 @@ public class TradeInternalInventory {
 
         inventoryValid = false;
 
-        inventoryItems = new ArrayList<>();
-        currencyItems = new ArrayList<>();
+        inventoryItems = new HashMap<>();
+        currencyItems = new HashMap<>();
+
+        hasMore = false;
+        moreStartPosition = 0;
 
         try {
             if (json.getBoolean("success")) {
@@ -59,12 +94,17 @@ public class TradeInternalInventory {
 
     /**
      * For large inventories, load additional inventory data.
+     *
      * @param json
      */
     public void loadMore(JSONObject json) {
         try {
             if (json.getBoolean("success")) {
                 parseInventory(json);
+            } else {
+                inventoryValid = false;
+                errorMessage = json.optString("error",
+                        TradeStatusCodes.EMPTY_MESSAGE);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -74,8 +114,7 @@ public class TradeInternalInventory {
     /**
      * Gets the AppContextPair associated with the inventory. Example: A Team
      * Fortress 2 inventory would return an AppContextPair equal to
-     * <code>new
-     * AppContextPair(440, 2);</code>
+     * <code>new AppContextPair(440, 2);</code>
      *
      * @return An AppContextPair "key" representing this instance.
      */
@@ -89,7 +128,7 @@ public class TradeInternalInventory {
      * @return A List containing all the available TradeInternalItem instances.
      */
     public List<TradeInternalItem> getItemList() {
-        return inventoryItems;
+        return new ArrayList<>(inventoryItems.values());
     }
 
     /**
@@ -98,7 +137,7 @@ public class TradeInternalInventory {
      * @return A List containing all available TradeInternalCurrency instances.
      */
     public List<TradeInternalCurrency> getCurrencyList() {
-        return currencyItems;
+        return new ArrayList<>(currencyItems.values());
     }
 
     /**
@@ -132,10 +171,8 @@ public class TradeInternalInventory {
      * if not.
      */
     public TradeInternalItem getItem(long assetid) {
-        for (TradeInternalItem item : inventoryItems) {
-            if (item.assetid == assetid) {
-                return item;
-            }
+        if (inventoryItems.containsKey(assetid)) {
+            return inventoryItems.get(assetid);
         }
         return TradeInternalItem.UNAVAILABLE;
     }
@@ -148,10 +185,8 @@ public class TradeInternalInventory {
      * null if not.
      */
     public TradeInternalCurrency getCurrency(long currencyid) {
-        for (TradeInternalCurrency currency : currencyItems) {
-            if (currency.currencyid == currencyid) {
-                return currency;
-            }
+        if (currencyItems.containsKey(currencyid)) {
+            return currencyItems.get(currencyid);
         }
         return null;
     }
@@ -164,14 +199,6 @@ public class TradeInternalInventory {
      */
     private void parseInventory(final JSONObject json) throws JSONException {
         inventoryValid = true;
-
-        // Well. Something's fucky here.
-        // They changed the 
-        if (!json.getBoolean("success")) {
-            //throw new Error("Retrieving inventory was unsuccessful.");
-            inventoryValid = false;
-            errorMessage = json.getString("error");
-        }
 
         // Convenience map to associate class/instance to description.
         Map<ClassInstancePair, JSONObject> descriptions = new HashMap<>();
@@ -201,7 +228,7 @@ public class TradeInternalInventory {
                 try {
                     TradeInternalItem generatedItem = assetBuilder.generateItem(appContext, invInstance, descriptions.get(itemCI));
 
-                    inventoryItems.add(generatedItem);
+                    inventoryItems.put(generatedItem.assetid, generatedItem);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -224,12 +251,28 @@ public class TradeInternalInventory {
                             assetBuilder.generateCurrency(appContext,
                             invInstance, descriptions.get(itemCI));
 
-                    currencyItems.add(generatedItem);
+                    currencyItems.put(generatedItem.assetid, generatedItem);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }
+
+        // Check if there is more to the inventory.
+        hasMore = json.optBoolean("more");
+
+        if (hasMore) {
+            // Shift the start position.
+            moreStartPosition = json.getInt("more_start");
+        }
+    }
+
+    public boolean hasMore() {
+        return this.hasMore;
+    }
+
+    public int getMoreStartPosition() {
+        return this.moreStartPosition;
     }
 
     /**
