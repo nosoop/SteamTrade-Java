@@ -17,11 +17,12 @@ The library, if you're unfamiliar with Steam trading, also supports:
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
   * Did I mention no API key? Of course, you'd need it if you'd like detailed game-specific data, but for on-the-surface stuff, I'd like to think you're covered - for the most part.
+  * Loading of large inventories (Valve made it so you can load 2500 items from the other player's inventory at a time)
+  * Pluggable support for game-specific items: Need to fetch that "app_data" object from the TF2 inventory? It's been done, but now you can do that yourself to, say, add API schema connectivity, and handle any other items yourself (mostly).
 
 Potential additions in the future include support for:
   * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now as basic as it is; just have to look over and fix up the item event stuff for amounts for both to show up.
-  * Threaded inventory loading
-  * ~~Nice, pluggable support to handle game-specific stuff (seriously, the "gifted by" handling is really bad at best and I'd rather not leave TF2-specific code in there)~~ Coming along pretty well; support has been added to extend past basic item support.  Not like it's needed _that_ much, but it helps with organizing.  Also not too great with coding conventions, so if there's a preferred method to go about that in Java, do tell.
+  * Threaded inventory loading?  Now that Valve put inventory downloads in chunks, this isn't too needed.
 
 
 Prerequisites, Dependencies and How-To
