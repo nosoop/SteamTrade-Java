@@ -27,7 +27,9 @@ import com.nosoop.steamtrade.TradeListener;
 import com.nosoop.steamtrade.TradeSession;
 import com.nosoop.steamtrade.inventory.AssetBuilder;
 import com.nosoop.steamtradeasset.ROT13F2AssetBuilder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,7 +79,7 @@ public class SteamClientExcerpt {
      * @param callback Callback signaling trade.
      */
     public void onNotifiedTradeStartWithModifiedAssetBuilder(MockSessionStartCallback callback) {
-        Map<Integer, AssetBuilder> assetBuilds = new HashMap<>();
+        List<AssetBuilder> assetBuilds = new ArrayList<>();
 
         /**
          * Items from appid:440 (Team Fortress 2) will be read using the
@@ -87,7 +89,7 @@ public class SteamClientExcerpt {
          * Given you have access to the individual items' JSON data, you can get
          * whatever info you need, pretty much.
          */
-        assetBuilds.put(440, new ROT13F2AssetBuilder());
+        assetBuilds.add(new ROT13F2AssetBuilder());
 
         TradeListener listener = new SampleTradeListener();
         TradeSession currentTrade; // The current trade.

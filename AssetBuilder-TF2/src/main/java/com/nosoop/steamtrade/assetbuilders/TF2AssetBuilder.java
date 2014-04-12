@@ -30,4 +30,9 @@ public class TF2AssetBuilder extends AssetBuilder {
     public TradeInternalItem generateItem(AppContextPair appContext, JSONObject rgInventory, JSONObject rgDescription) throws JSONException {
         return new TF2Item(appContext, rgInventory, rgDescription);
     }
+
+    @Override
+    public boolean isSupported(AppContextPair appContext) {
+        return appContext.getAppid() == 440 && appContext.getContextid() == 2;
+    }
 }

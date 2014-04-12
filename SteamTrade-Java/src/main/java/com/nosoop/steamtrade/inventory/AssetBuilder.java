@@ -13,7 +13,18 @@ import bundled.steamtrade.org.json.JSONObject;
  *
  * @author nosoop < nosoop at users.noreply.github.com >
  */
-public class AssetBuilder {
+public abstract class AssetBuilder {
+    /**
+     * Determines whether or not this AssetBuilder instance should handle
+     * loading a given inventory. For subclassed AssetBuilders, override this
+     * method.
+     *
+     * @param appContext An appid-contextid pair for an inventory.
+     * @return Whether or not this AssetBuilder instance should handle the
+     * inventory.
+     */
+    public abstract boolean isSupported(AppContextPair appContext);
+
     public TradeInternalItem generateItem(AppContextPair appContext,
             JSONObject rgInventory, JSONObject rgDescription)
             throws JSONException {

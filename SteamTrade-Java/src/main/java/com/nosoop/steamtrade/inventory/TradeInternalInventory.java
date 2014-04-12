@@ -43,6 +43,12 @@ public class TradeInternalInventory {
      */
     int moreStartPosition;
 
+    /**
+     * Creates a new, empty inventory.
+     *
+     * @param appContext The appid-contextid pair this inventory represents.
+     * @param assetBuilder An AssetBuilder instance to load the inventory data.
+     */
     public TradeInternalInventory(AppContextPair appContext, AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;
@@ -57,20 +63,13 @@ public class TradeInternalInventory {
     }
 
     /**
-     * Takes a String representation of the JSON data received from trading and
-     * creates a representation of the inventory.
+     * Takes a JSON data feed received from loading our inventory and creates a
+     * representation of.
      *
-     * @param s A String value representing a player's inventory (using an
-     * undocumented JSON format).
-     * @param appid An integer representing the appid of the game with the
-     * inventory.
-     * @param contextid A long value representing the specific inventory context
-     * (the 'sub-inventory' for a game, grouping items for an appid).
+     * @param json A JSONObject representation of the inventory to load.
+     * @param appContext The appid-contextid pair this inventory represents.
+     * @param assetBuilder An AssetBuilder instance to load the inventory data.
      */
-    public TradeInternalInventory(JSONObject s, AppContextPair appContext) {
-        this(s, appContext, new AssetBuilder());
-    }
-
     public TradeInternalInventory(JSONObject json, AppContextPair appContext, AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;

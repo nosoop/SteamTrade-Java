@@ -13,15 +13,20 @@ import java.util.Map;
  * @author nosoop
  */
 public class TradeInternalInventories {
-
     Map<AppContextPair, TradeInternalInventory> gameInventories;
-    Map<Integer, AssetBuilder> inventoryLoaders;
-    
+    List<AssetBuilder> inventoryLoaders;
+    final static AssetBuilder DEFAULT_ASSET_BUILDER = new AssetBuilder() {
+        @Override
+        public boolean isSupported(AppContextPair appContext) {
+            return true;
+        }
+    };
+
     public TradeInternalInventories() {
-        this(new HashMap<Integer,AssetBuilder>());
+        this(new ArrayList<AssetBuilder>());
     }
-    
-    public TradeInternalInventories(Map<Integer,AssetBuilder> assetBuild) {
+
+    public TradeInternalInventories(List<AssetBuilder> assetBuild) {
         this.inventoryLoaders = assetBuild;
         this.gameInventories = new HashMap<>();
     }
@@ -33,24 +38,30 @@ public class TradeInternalInventories {
      * @param feed
      */
     public void addInventory(AppContextPair appContext, JSONObject feed) {
-        AssetBuilder asset = new AssetBuilder();
-        
-        if (inventoryLoaders.containsKey(appContext.appid)) {
-            asset = inventoryLoaders.get(appContext.appid);
+        AssetBuilder asset = DEFAULT_ASSET_BUILDER;
+
+        for (AssetBuilder build : inventoryLoaders) {
+            if (build.isSupported(appContext)) {
+                asset = build;
+                break;
+            }
         }
-        
+
         gameInventories.put(appContext,
                 new TradeInternalInventory(feed, appContext, asset));
     }
-    
+
     public void addInventory(AppContextPair appContext) {
-        AssetBuilder asset = new AssetBuilder();
-        
-        if (inventoryLoaders.containsKey(appContext.appid)) {
-            asset = inventoryLoaders.get(appContext.appid);
+        AssetBuilder asset = DEFAULT_ASSET_BUILDER;
+
+        for (AssetBuilder build : inventoryLoaders) {
+            if (build.isSupported(appContext)) {
+                asset = build;
+                break;
+            }
         }
-        
-        gameInventories.put(appContext, 
+
+        gameInventories.put(appContext,
                 new TradeInternalInventory(appContext, asset));
     }
 

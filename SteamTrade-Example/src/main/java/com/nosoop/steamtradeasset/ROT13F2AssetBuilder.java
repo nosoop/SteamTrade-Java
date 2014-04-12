@@ -44,6 +44,14 @@ public class ROT13F2AssetBuilder extends AssetBuilder {
          */
         return new TradeInternalItem(appContext, rgInventory, rgDescription);
     }
+    
+    @Override
+    public boolean isSupported(AppContextPair appContext) {
+        /**
+         * Use this AssetBuilder for inventories 440/2 (Team Fortress 2).
+         */
+        return appContext.getAppid() == 440 && appContext.getContextid() == 2;
+    }
 
     public static String rot13(String input) {
         StringBuilder output = new StringBuilder();
