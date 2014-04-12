@@ -17,12 +17,12 @@ The library, if you're unfamiliar with Steam trading, also supports:
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
   * Did I mention no API key? Of course, you'd need it if you'd like detailed game-specific data, but for on-the-surface stuff, I'd like to think you're covered - for the most part.
-  * Loading of large inventories (Valve made it so you can load 2500 items from the other player's inventory at a time)
+  * Loading of large inventories as needed (Valve made it so you load 2500? items at a time, this makes it so it only loads up to whatever item the other user has put up)
   * Pluggable support for game-specific items: Need to fetch that "app_data" object from the TF2 inventory? It's been done, but now you can do that yourself to, say, add API schema connectivity, and handle any other items yourself (mostly).
 
 Potential additions in the future include support for:
-  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now as basic as it is; just have to look over and fix up the item event stuff for amounts for both to show up.
-  * Threaded inventory loading?  Now that Valve put inventory downloads in chunks, this isn't too needed.
+  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  Mo amount; similar case with stackables.
+  * Inventory caching?  For card swap bots and possibly other traders, the assetid could be loaded from a previous inventory download.
 
 
 Prerequisites, Dependencies and How-To
@@ -36,6 +36,7 @@ A small snippet of the library in example use is available as the SampleTrade pr
 
 This is a Maven project and is dependent only on a copy of the `org.json` reference JSON library. The library is bundled with the project as the Java package `bundled.steamtrade.org.json`, to avoid conflicts with existing installs of `org.json`.  
 The library has been given a few minor changes to support Java 1.5+ features, mainly using `valueOf()` methods over `new [...]()` to take advantage of the cached values when possible.
+
 
 Just a Note
 -----------
