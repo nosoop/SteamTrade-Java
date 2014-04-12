@@ -40,6 +40,24 @@ public class TradeInternalInventories {
         this.inventoryLoaders = assetBuild;
         this.gameInventories = new HashMap<>();
     }
+    
+    public void addCachedInventory(AppContextPair appContext, JSONObject feed) {
+        AssetBuilder asset = DEFAULT_ASSET_BUILDER;
+
+        // Load the first supported AssetBuilder if any, else use default.
+        for (AssetBuilder build : inventoryLoaders) {
+            if (build.isSupported(appContext)) {
+                asset = build;
+                break;
+            }
+        }
+
+        TradeInternalInventory inv = 
+                new TradeInternalInventory(feed, appContext, asset);
+        inv.wasCached = true;
+        
+        gameInventories.put(appContext, inv);
+    }
 
     /**
      * Adds an inventory to the collection using a given AppContextPair and

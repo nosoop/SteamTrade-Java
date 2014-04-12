@@ -32,7 +32,13 @@ public class TradeInternalInventory {
      * Should be fine as a list, but for now.
      */
     Map<Long, TradeInternalCurrency> currencyItems;
+    /**
+     * The appid-contextid pair this inventory represents.
+     */
     final AppContextPair appContext;
+    /**
+     * The AssetBuilder instance used to load this inventory.
+     */
     final AssetBuilder assetBuilder;
     /**
      * Whether or not there is more to load in the inventory.
@@ -42,6 +48,10 @@ public class TradeInternalInventory {
      * The start position to load from.
      */
     int moreStartPosition;
+    /**
+     * Whether or not this inventory was cached.
+     */
+    boolean wasCached;
 
     /**
      * Creates a new, empty inventory.
