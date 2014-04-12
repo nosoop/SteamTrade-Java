@@ -281,9 +281,9 @@ public class TradeSession implements Runnable {
                 // If null after loading the inventory, something's fishy.
                 String errorMsg = "Could not load item asset %d in inventory "
                         + "with appid %d and contextid %d.";
-                
+
                 tradeListener.onError(TradeStatusCodes.USER_ITEM_NOT_FOUND,
-                        String.format(errorMsg, evt.assetid, evt.appid, 
+                        String.format(errorMsg, evt.assetid, evt.appid,
                         evt.contextid));
             }
         }
@@ -399,18 +399,40 @@ public class TradeSession implements Runnable {
         }
     }
 
+    /**
+     * Returns our client's Steam ID.
+     *
+     * @return The client's Steam ID as a 64-bit long value.
+     */
     public long getOwnSteamId() {
         return TRADE_USER_SELF.STEAM_ID;
     }
 
+    /**
+     * Returns our trading partner's Steam ID.
+     *
+     * @return The trading partner's Steam ID as a 64-bit long value.
+     */
     public long getPartnerSteamId() {
         return TRADE_USER_PARTNER.STEAM_ID;
     }
 
+    /**
+     * Returns a TradeUser instance containing our Steam ID, loaded inventories,
+     * offer, and whether or not we are ready.
+     *
+     * @return A TradeUser instance containing data for the running client.
+     */
     public TradeUser getSelf() {
         return TRADE_USER_SELF;
     }
 
+    /**
+     * Returns a TradeUser instance containing our trading partner's Steam ID,
+     * loaded inventories, offer, and whether or not they are ready.
+     *
+     * @return A TradeUser instance containing data for the trading partner.
+     */
     public TradeUser getPartner() {
         return TRADE_USER_PARTNER;
     }
@@ -439,8 +461,15 @@ public class TradeSession implements Runnable {
                 + "Valve Steam Client/1392853084; SteamTrade-Java Client; ) "
                 + "AppleWebKit/535.19 (KHTML, like Gecko) "
                 + "Chrome/18.0.1025.166 Safari/535.19";
+        /**
+         * A URL-decoded copy of SESSION_ID. Needed to make requests.
+         */
         final String DECODED_SESSION_ID;
 
+        /**
+         * Initializes the instance and attempts to create a URL-decoded copy of
+         * the SESSION_ID. Fails if the system does not support UTF-8.
+         */
         TradeCommands() {
             try {
                 DECODED_SESSION_ID = URLDecoder.decode(SESSION_ID, "UTF-8");
@@ -466,7 +495,7 @@ public class TradeSession implements Runnable {
 
         /**
          * Adds an item to the trade directly, as opposed to using a
-         * TradeInternalItem instance..
+         * TradeInternalItem instance.
          *
          * @param appid The game inventory for the item.
          * @param contextid The inventory "context" for the item.
@@ -524,7 +553,9 @@ public class TradeSession implements Runnable {
             data.put("ready", ready ? "true" : "false");
             data.put("version", "" + version);
 
-            final String response = fetch(TRADE_URL + "toggleready", "POST", data);
+            final String response =
+                    fetch(TRADE_URL + "toggleready", "POST", data);
+
             try {
                 Status readyStatus = new Status(new JSONObject(response));
                 if (readyStatus.success) {
@@ -608,6 +639,13 @@ public class TradeSession implements Runnable {
             return new Status(new JSONObject(response));
         }
 
+        /**
+         * Loads a foreign inventory. If the inventory already exists partially
+         * loaded, continue loading the inventory.
+         *
+         * @param appContext
+         * @return
+         */
         public synchronized TradeInternalInventory loadForeignInventory(
                 AppContextPair appContext) {
             final Map<String, String> data = new HashMap<>();
@@ -783,36 +821,31 @@ public class TradeSession implements Runnable {
             this.ready = false;
         }
 
+        /**
+         * @return A set of TradeInternalAsset instances displaying the offer,
+         * containing TradeInternalItem and TradeInternalCurrency instances.
+         */
         public Set<TradeInternalAsset> getOffer() {
             return TRADE_OFFER;
         }
 
-        public Set<TradeInternalAsset> getOffer(Class type) {
-            Set<TradeInternalAsset> offeredItems = new HashSet<>();
-
-            if (!TradeInternalAsset.class.isAssignableFrom(type)) {
-                String exceptionMessage = String.format(
-                        "Class %d is not a subclass of TradeInternalAsset",
-                        type.getName());
-                throw new IllegalArgumentException(exceptionMessage);
-            }
-
-            for (TradeInternalAsset item : TRADE_OFFER) {
-                if (type.isInstance(item)) {
-                    offeredItems.add(item);
-                }
-            }
-            return offeredItems;
-        }
-
+        /**
+         * @return A 64-bit long representation of the instance Steam ID.
+         */
         public long getSteamID() {
             return STEAM_ID;
         }
 
+        /**
+         * @return The selected user's TradeInternalInventories instance.
+         */
         public TradeInternalInventories getInventories() {
             return INVENTORIES;
         }
 
+        /**
+         * @return Whether or not the selected user is ready.
+         */
         public boolean isReady() {
             return ready;
         }
