@@ -38,6 +38,52 @@ public class TF2AssetBuilder extends AssetBuilder {
     }
 
     /**
+     * Enumeration of known TF2 item qualities. And undefined.
+     */
+    public enum Quality {
+        NORMAL, RARITY1, RARITY2, VINTAGE, RARITY3, RARITY4, UNIQUE,
+        COMMUNITY, DEVELOPER, SELFMADE, CUSTOMIZED, STRANGE, COMPLETED,
+        HAUNTED, COLLECTORS, UNDEFINED;
+
+        static Quality getQuality(int quality) {
+            switch (quality) {
+                case 0:
+                    return NORMAL;
+                case 1:
+                    return RARITY1;
+                case 2:
+                    return RARITY2;
+                case 3:
+                    return VINTAGE;
+                case 4:
+                    return RARITY3;
+                case 5:
+                    return RARITY4;
+                case 6:
+                    return UNIQUE;
+                case 7:
+                    return COMMUNITY;
+                case 8:
+                    return DEVELOPER;
+                case 9:
+                    return SELFMADE;
+                case 10:
+                    return CUSTOMIZED;
+                case 11:
+                    return STRANGE;
+                case 12:
+                    return COMPLETED;
+                case 13:
+                    return HAUNTED;
+                case 14:
+                    return COLLECTORS;
+                default:
+                    return UNDEFINED;
+            }
+        }
+    }
+
+    /**
      * A TradeInternalItem instance that holds data specific to Team Fortress 2
      * items.
      *
@@ -57,7 +103,7 @@ public class TF2AssetBuilder extends AssetBuilder {
          * The quality indicator of the item. Also only good with the schema
          * really, though the name should have it.
          */
-        byte quality;
+        Quality quality;
 
         public TF2Item(AppContextPair appContext, JSONObject rgInventoryItem,
                 JSONObject rgDescriptionItem) throws JSONException {
@@ -72,7 +118,8 @@ public class TF2AssetBuilder extends AssetBuilder {
                 }
 
                 if (appData.has("quality")) {
-                    quality = (byte) Integer.parseInt(appData.getString("quality"));
+                    quality = Quality.getQuality(
+                            Integer.parseInt(appData.getString("quality")));
                 }
             }
 
@@ -101,6 +148,8 @@ public class TF2AssetBuilder extends AssetBuilder {
              * the trading partner does not have a private inventory, you can
              * also load the player data from the API yourself and identify the
              * item by its "id" key matching the assetid of this instance.
+             *
+             * Assuming JSON:
              *
              * In .attributes[], the existence of defindex 186 means the item
              * was a gift.
