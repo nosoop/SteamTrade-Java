@@ -12,7 +12,8 @@ import com.nosoop.steamtrade.inventory.AssetBuilder;
 import com.nosoop.steamtrade.inventory.TradeInternalItem;
 
 /**
- * An asset builder that generates TF2Item instances.
+ * An asset builder that generates TF2Item instances. Add this to a list and
+ * pass it to the TradeSession instance to use.
  *
  * @author nosoop < nosoop at users.noreply.github.com >
  */
