@@ -22,17 +22,28 @@ public class TradeInternalInventories {
         }
     };
 
+    /**
+     * Creates a new TradeInternalInventories instance with an empty
+     * AssetBuilder list.
+     */
     public TradeInternalInventories() {
         this(new ArrayList<AssetBuilder>());
     }
 
+    /**
+     * Creates a new TradeInternalInventories instance with a given list of
+     * AssetBuilders to use.
+     *
+     * @param assetBuild A list of AssetBuilders to test inventory loading.
+     */
     public TradeInternalInventories(List<AssetBuilder> assetBuild) {
         this.inventoryLoaders = assetBuild;
         this.gameInventories = new HashMap<>();
     }
 
     /**
-     * Adds a new inventory to the collection using a given AppContextPair.
+     * Adds an inventory to the collection using a given AppContextPair and
+     * loads it using the supplied inventory data JSONObject.
      *
      * @param appContext
      * @param feed
@@ -40,6 +51,7 @@ public class TradeInternalInventories {
     public void addInventory(AppContextPair appContext, JSONObject feed) {
         AssetBuilder asset = DEFAULT_ASSET_BUILDER;
 
+        // Load the first supported AssetBuilder if any, else use default.
         for (AssetBuilder build : inventoryLoaders) {
             if (build.isSupported(appContext)) {
                 asset = build;
@@ -51,9 +63,16 @@ public class TradeInternalInventories {
                 new TradeInternalInventory(feed, appContext, asset));
     }
 
+    /**
+     * Adds a new, empty inventory to the collection with just an
+     * AppContextPair.
+     *
+     * @param appContext
+     */
     public void addInventory(AppContextPair appContext) {
         AssetBuilder asset = DEFAULT_ASSET_BUILDER;
 
+        // Load the first supported AssetBuilder if any, else use default.
         for (AssetBuilder build : inventoryLoaders) {
             if (build.isSupported(appContext)) {
                 asset = build;
