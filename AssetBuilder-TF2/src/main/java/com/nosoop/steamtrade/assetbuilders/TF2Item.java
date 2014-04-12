@@ -27,7 +27,8 @@ public class TF2Item extends TradeInternalItem {
      */
     int defIndex;
     /**
-     * The quality indicator of the item. Also only good with the schema.
+     * The quality indicator of the item. Also only good with the schema really,
+     * though the name should have it.
      */
     byte quality;
 
@@ -67,6 +68,19 @@ public class TF2Item extends TradeInternalItem {
                 }
             }
         }
+
+        /**
+         * If you have access to IEconItems_440/GetPlayerItems, and assuming the
+         * trading partner does not have a private inventory, you can also load
+         * the player data from the API yourself and identify the item by its "id" key
+         * matching the assetid of this instance.
+         *
+         * In .attributes[], the existence of defindex 186 means the item was a
+         * gift.
+         *
+         * .custom_name and .custom_desc or the existence of defindices 500 and
+         * 501 means that the item has a custom name and custom description.
+         */
     }
 
     /**
