@@ -16,13 +16,17 @@ The library, if you're unfamiliar with Steam trading, also supports:
   * Dynamic loading of inventories (just about any game, pretty much)
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
-  * Did I mention no API key? Of course, you'd need it if you'd like detailed game-specific data, but for on-the-surface stuff, I'd like to think you're covered - for the most part.
   * Loading of large inventories as needed (Valve made it so you load 2500? items at a time, this makes it so it only loads up to whatever item the other user has put up)
-  * Pluggable support for game-specific items: Need to fetch that "app_data" object from the TF2 inventory? It's been done, but now you can do that yourself to, say, add API schema connectivity, and handle any other items yourself (mostly).
+  * Pluggable support for game-specific items: Now you can extend the item support to, say, add WebAPI schema / inventory connectivity and handle any other items yourself (mostly; you get access to the inventory data in the scope of the asset to be loaded).
 
 Potential additions in the future include support for:
   * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  Mo amount; similar case with stackables.
   * Inventory caching?  For card swap bots and possibly other traders, the assetid could be loaded from a previous inventory download.
+
+The three included projects are:
+  * SteamTrade-Java:  The core of the project, handling trade connectivity and all.
+  * SteamTrade-Example:  A non-functioning example to show what can be done with the library.
+  * AssetBuilder-TF2:  An example of pluggable support for Team Fortress 2 items, exposing its item definition index and quality from the available item data, plus comments on how to extend support via the official WebAPI.
 
 
 Prerequisites, Dependencies and How-To
