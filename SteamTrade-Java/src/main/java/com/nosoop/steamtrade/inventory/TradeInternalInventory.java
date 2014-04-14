@@ -284,6 +284,8 @@ public class TradeInternalInventory {
         return this.moreStartPosition;
     }
 
+    // TODO Write toJSONObject() method to support inventory saving?
+    
     /**
      * Utility class to identify class-instance pairs.
      *

@@ -14,7 +14,15 @@ import java.util.Map;
  */
 public class TradeInternalInventories {
     Map<AppContextPair, TradeInternalInventory> gameInventories;
-    List<AssetBuilder> inventoryLoaders;
+    /**
+     * A list of AssetBuilder instances that can load inventories. First
+     * AssetBuilder that accepts an inventory takes precedence over other
+     * AssetBuilders that accept the inventory that are lower in the list.
+     */
+    final List<AssetBuilder> inventoryLoaders;
+    /**
+     * A default AssetBuilder instance. Accepts all inventories.
+     */
     final static AssetBuilder DEFAULT_ASSET_BUILDER = new AssetBuilder() {
         @Override
         public boolean isSupported(AppContextPair appContext) {
@@ -40,7 +48,7 @@ public class TradeInternalInventories {
         this.inventoryLoaders = assetBuild;
         this.gameInventories = new HashMap<>();
     }
-    
+
     public void addCachedInventory(AppContextPair appContext, JSONObject feed) {
         AssetBuilder asset = DEFAULT_ASSET_BUILDER;
 
@@ -52,10 +60,10 @@ public class TradeInternalInventories {
             }
         }
 
-        TradeInternalInventory inv = 
+        TradeInternalInventory inv =
                 new TradeInternalInventory(feed, appContext, asset);
         inv.wasCached = true;
-        
+
         gameInventories.put(appContext, inv);
     }
 

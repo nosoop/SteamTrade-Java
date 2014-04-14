@@ -27,5 +27,4 @@ public class TradeInternalCurrency extends TradeInternalAsset {
     public long getCurrencyId() {
         return currencyid;
     }
-    // TODO Add method to return overridable name instead of using basic display.
 }

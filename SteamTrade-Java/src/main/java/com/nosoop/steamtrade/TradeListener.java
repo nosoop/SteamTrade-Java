@@ -67,6 +67,8 @@ public abstract class TradeListener {
      * will default to TradeStatusCodes.EMPTY_MESSAGE.
      */
     public abstract void onError(int errorCode, String errorMessage);
+    
+    // TODO implement onException, create TradeException?
 
     /**
      * Called when the client polls the trade. If you want to warn the other
