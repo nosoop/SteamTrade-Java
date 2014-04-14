@@ -56,7 +56,7 @@ public abstract class TradeInternalAsset {
     TradeInternalAsset(AppContextPair appContext, JSONObject rgInventoryItem,
             JSONObject rgDescriptionItem) throws JSONException {
         this.appContext = appContext;
-        
+
         this.name = rgDescriptionItem.getString("name");
         this.marketName = rgDescriptionItem.getString("market_name");
         this.type = rgDescriptionItem.getString("type");
@@ -66,6 +66,14 @@ public abstract class TradeInternalAsset {
         this.amount = Integer.parseInt(
                 rgInventoryItem.optString("amount", "1"));
         this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
+
+        /**
+         * Verify that the input appid is the same appid passed in the
+         * constructor.
+         */
+        int descriptionAppid = Integer.parseInt(
+                rgDescriptionItem.getString("appid"));
+        assert (descriptionAppid == this.appContext.appid);
     }
 
     /**
