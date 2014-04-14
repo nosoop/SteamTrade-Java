@@ -59,7 +59,8 @@ public class TradeInternalInventory {
      * @param appContext The appid-contextid pair this inventory represents.
      * @param assetBuilder An AssetBuilder instance to load the inventory data.
      */
-    public TradeInternalInventory(AppContextPair appContext, AssetBuilder assetBuilder) {
+    public TradeInternalInventory(AppContextPair appContext,
+            AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;
 
@@ -80,7 +81,8 @@ public class TradeInternalInventory {
      * @param appContext The appid-contextid pair this inventory represents.
      * @param assetBuilder An AssetBuilder instance to load the inventory data.
      */
-    public TradeInternalInventory(JSONObject json, AppContextPair appContext, AssetBuilder assetBuilder) {
+    public TradeInternalInventory(JSONObject json, AppContextPair appContext,
+            AssetBuilder assetBuilder) {
         this.appContext = appContext;
         this.assetBuilder = assetBuilder;
 
@@ -212,7 +214,8 @@ public class TradeInternalInventory {
         // Convenience map to associate class/instance to description.
         Map<ClassInstancePair, JSONObject> descriptions = new HashMap<>();
         JSONObject rgDescriptions = json.optJSONObject("rgDescriptions");
-        for (final String rgDescriptionKey : (Set<String>) rgDescriptions.keySet()) {
+        for (final String rgDescriptionKey
+                : (Set<String>) rgDescriptions.keySet()) {
             JSONObject rgDescriptionItem =
                     rgDescriptions.getJSONObject(rgDescriptionKey);
 
@@ -226,16 +229,19 @@ public class TradeInternalInventory {
         // Add non-currency items.
         JSONObject rgInventory = json.optJSONObject("rgInventory");
         if (rgInventory != null) {
-            for (final String rgInventoryItem : (Set<String>) rgInventory.keySet()) {
+            for (String rgInventoryItem : (Set<String>) rgInventory.keySet()) {
                 JSONObject invInstance =
                         rgInventory.getJSONObject(rgInventoryItem);
 
                 ClassInstancePair itemCI = new ClassInstancePair(
                         Integer.parseInt(invInstance.getString("classid")),
-                        Long.parseLong(invInstance.optString("instanceid", "0")));
+                        Long.parseLong(
+                        invInstance.optString("instanceid", "0")));
 
                 try {
-                    TradeInternalItem generatedItem = assetBuilder.generateItem(appContext, invInstance, descriptions.get(itemCI));
+                    TradeInternalItem generatedItem =
+                            assetBuilder.generateItem(appContext, invInstance,
+                            descriptions.get(itemCI));
 
                     inventoryItems.put(generatedItem.assetid, generatedItem);
                 } catch (JSONException e) {
@@ -247,7 +253,7 @@ public class TradeInternalInventory {
         // Add currency items
         JSONObject rgCurrency = json.optJSONObject("rgCurrency");
         if (rgCurrency != null) {
-            for (final String rgCurrencyItem : (Set<String>) rgCurrency.keySet()) {
+            for (String rgCurrencyItem : (Set<String>) rgCurrency.keySet()) {
                 JSONObject invInstance =
                         rgCurrency.getJSONObject(rgCurrencyItem);
 
@@ -285,7 +291,6 @@ public class TradeInternalInventory {
     }
 
     // TODO Write toJSONObject() method to support inventory saving?
-    
     /**
      * Utility class to identify class-instance pairs.
      *

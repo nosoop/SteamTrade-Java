@@ -82,8 +82,10 @@ public class TradeSession implements Runnable {
      * @param listener Trade listener to respond to trade actions.
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener) {
-        this(steamidSelf, steamidPartner, sessionId, token, listener, new ArrayList<AssetBuilder>());
+    public TradeSession(long steamidSelf, long steamidPartner, String sessionId,
+            String token, TradeListener listener) {
+        this(steamidSelf, steamidPartner, sessionId, token, listener,
+                new ArrayList<AssetBuilder>());
     }
 
     /**
@@ -99,7 +101,9 @@ public class TradeSession implements Runnable {
      * to the appid of the inventory to be modified.
      */
     @SuppressWarnings("LeakingThisInConstructor")
-    public TradeSession(long steamidSelf, long steamidPartner, String sessionId, String token, TradeListener listener, final List<AssetBuilder> assetBuilders) {
+    public TradeSession(long steamidSelf, long steamidPartner, String sessionId,
+            String token, TradeListener listener,
+            final List<AssetBuilder> assetBuilders) {
         SESSION_ID = sessionId;
         STEAM_LOGIN = token;
 
@@ -156,10 +160,13 @@ public class TradeSession implements Runnable {
                 // If there was no new action during this poll, update timer.
                 final long timeCurrent = System.currentTimeMillis();
 
-                final int secondsSinceLastAction = (int) (timeCurrent - timeLastPartnerAction) / 1000;
-                final int secondsSinceTradeStart = (int) (timeCurrent - TIME_TRADE_START) / 1000;
+                final int secondsSinceLastAction =
+                        (int) (timeCurrent - timeLastPartnerAction) / 1000;
+                final int secondsSinceTradeStart =
+                        (int) (timeCurrent - TIME_TRADE_START) / 1000;
 
-                tradeListener.onTimer(secondsSinceLastAction, secondsSinceTradeStart);
+                tradeListener.onTimer(
+                        secondsSinceLastAction, secondsSinceTradeStart);
             }
 
             if (status.trade_status == TradeStatusCodes.TRADE_COMPLETED) {
@@ -204,11 +211,15 @@ public class TradeSession implements Runnable {
      */
     private void handleTradeEvent(final TradeEvent evt) {
         // Drop the event if the event's steamid is not theirs.
-        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+        boolean isBot = !evt.steamid.equals(
+                String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         // TODO Link their asset to variable item count.
         if (status.them.assets != null) {
-            //System.out.println(java.util.Arrays.toString(status.them.assets.toArray()));
+            /*
+             * System.out.println(
+             * java.util.Arrays.toString(status.them.assets.toArray()));
+             */
         }
 
         switch (evt.action) {
@@ -261,7 +272,8 @@ public class TradeSession implements Runnable {
     }
 
     private void eventUserAddedItem(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+        boolean isBot = !evt.steamid.equals(
+                String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         if (!isBot) {
             /**
@@ -271,7 +283,8 @@ public class TradeSession implements Runnable {
             TradeInternalInventory userInv;
             TradeInternalItem item;
             do {
-                userInv = API.loadForeignInventory(new AppContextPair(evt.appid, evt.contextid));
+                userInv = API.loadForeignInventory(
+                        new AppContextPair(evt.appid, evt.contextid));
                 item = userInv.getItem(evt.assetid);
             } while (item == null && userInv.hasMore());
 
@@ -299,10 +312,13 @@ public class TradeSession implements Runnable {
     }
 
     private void eventUserRemovedItem(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+        boolean isBot = !evt.steamid.equals(
+                String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         if (!isBot) {
-            final TradeInternalItem item = TRADE_USER_PARTNER.getInventories().getInventory(evt.appid, evt.contextid).getItem(evt.assetid);
+            final TradeInternalItem item = TRADE_USER_PARTNER.getInventories()
+                    .getInventory(evt.appid, evt.contextid)
+                    .getItem(evt.assetid);
             tradeListener.onUserRemoveItem(item);
         }
 
@@ -315,7 +331,8 @@ public class TradeSession implements Runnable {
     }
 
     private void eventUserSetCurrencyAmount(TradeEvent evt) {
-        boolean isBot = !evt.steamid.equals(String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
+        boolean isBot = !evt.steamid.equals(
+                String.valueOf(TRADE_USER_PARTNER.STEAM_ID));
 
         if (!isBot) {
             /**
@@ -328,7 +345,8 @@ public class TradeSession implements Runnable {
             TradeInternalInventory userInv;
             TradeInternalCurrency item;
             do {
-                userInv = API.loadForeignInventory(new AppContextPair(evt.appid, evt.contextid));
+                userInv = API.loadForeignInventory(
+                        new AppContextPair(evt.appid, evt.contextid));
                 item = userInv.getCurrency(evt.assetid);
             } while (item == null && userInv.hasMore());
 
@@ -386,13 +404,16 @@ public class TradeSession implements Runnable {
         }
 
         // TODO Add support for large inventories ourselves.
-        url = String.format("http://steamcommunity.com/profiles/%d/inventory/json/%d/%d/?trading=1", TRADE_USER_SELF.STEAM_ID, appContext.getAppid(), appContext.getContextid());
+        url = String.format(TradeCommands.LOCAL_INVENTORY_FORMAT_URL,
+                TRADE_USER_SELF.STEAM_ID,
+                appContext.getAppid(), appContext.getContextid());
 
         response = API.fetch(url, "GET", null, true);
 
         try {
             JSONObject repsonseObject = new JSONObject(response);
-            TRADE_USER_SELF.getInventories().addInventory(appContext, repsonseObject);
+            TRADE_USER_SELF.getInventories()
+                    .addInventory(appContext, repsonseObject);
         } catch (JSONException e) {
             tradeListener.onError(TradeStatusCodes.OWN_INVENTORY_LOAD_ERROR,
                     e.getMessage());
@@ -462,6 +483,13 @@ public class TradeSession implements Runnable {
                 + "AppleWebKit/535.19 (KHTML, like Gecko) "
                 + "Chrome/18.0.1025.166 Safari/535.19";
         /**
+         * The format string representing a URL to load our client's inventory.
+         * The three placeholders are for STEAMID, APPID, and CONTEXTID.
+         */
+        final static String LOCAL_INVENTORY_FORMAT_URL =
+                "http://steamcommunity.com/profiles/%d/"
+                + "inventory/json/%d/%d/?trading=1";
+        /**
          * A URL-decoded copy of SESSION_ID. Needed to make requests.
          */
         final String DECODED_SESSION_ID;
@@ -490,7 +518,8 @@ public class TradeSession implements Runnable {
          * @param slot The offer slot to place the item in (0~255).
          */
         public void addItem(TradeInternalItem item, int slot) {
-            addItem(item.getAppid(), item.getContextid(), item.getAssetid(), slot);
+            addItem(item.getAppid(), item.getContextid(), item.getAssetid(),
+                    slot);
         }
 
         /**
@@ -634,7 +663,8 @@ public class TradeSession implements Runnable {
             data.put("logpos", "" + logpos);
             data.put("version", "" + version);
 
-            final String response = fetch(TRADE_URL + "tradestatus/", "POST", data);
+            final String response = fetch(TRADE_URL + "tradestatus/", "POST",
+                    data);
 
             return new Status(new JSONObject(response));
         }
@@ -671,7 +701,8 @@ public class TradeSession implements Runnable {
 
 
             try {
-                String feed = fetch(TRADE_URL + "foreigninventory/", "GET", data);
+                String feed = fetch(TRADE_URL + "foreigninventory/", "GET",
+                        data);
 
                 JSONObject jsonData = new JSONObject(feed);
 
@@ -706,7 +737,8 @@ public class TradeSession implements Runnable {
          * @param sendLoginData Whether or not to send login session data.
          * @return The server's String response to the request.
          */
-        String fetch(String url, String method, Map<String, String> data, boolean sendLoginData) {
+        String fetch(String url, String method, Map<String, String> data,
+                boolean sendLoginData) {
             String cookies = "";
             if (sendLoginData) {
                 cookies = "sessionid=" + DECODED_SESSION_ID + "; "
@@ -727,21 +759,34 @@ public class TradeSession implements Runnable {
          * headers.
          * @return The server's String response to the request.
          */
-        String request(String url, String method, Map<String, String> data, String cookies) {
+        String request(String url, String method, Map<String, String> data,
+                String cookies) {
             boolean ajax = true;
             StringBuilder out = new StringBuilder();
             try {
-                String dataString = "";
+                String dataString;
+                StringBuilder dataStringBuffer = new StringBuilder();
                 if (data != null) {
                     for (Map.Entry<String, String> entry : data.entrySet()) {
-                        dataString += URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder.encode(entry.getValue(), "UTF-8") + "&";
+                        dataStringBuffer.append(
+                                URLEncoder.encode(entry.getKey(), "UTF-8"))
+                                .append("=").append(
+                                URLEncoder.encode(entry.getValue(), "UTF-8"))
+                                .append("&");
+                        /**
+                         * dataString += URLEncoder.encode( entry.getKey(),
+                         * "UTF-8") + "=" + URLEncoder.encode( entry.getValue(),
+                         * "UTF-8") + "&";
+                         */
                     }
                 }
+                dataString = dataStringBuffer.toString();
                 if (!method.equals("POST")) {
                     url += "?" + dataString;
                 }
                 final URL url2 = new URL(url);
-                final HttpURLConnection conn = (HttpURLConnection) url2.openConnection();
+                final HttpURLConnection conn =
+                        (HttpURLConnection) url2.openConnection();
                 conn.setRequestProperty("Cookie", cookies);
                 conn.setRequestMethod(method);
                 System.setProperty("http.agent", "");
@@ -755,15 +800,19 @@ public class TradeSession implements Runnable {
                         "text/javascript, text/hml, "
                         + "application/xml, text/xml, */*");
 
-                // I don't know why, but we need a referer, otherwise we get a server error response.
-                // Just use our trade URL as the referer since we have it on hand.
+                /**
+                 * Turns out we need a referer, otherwise we get an error from
+                 * the server. Just use the trade URL as one since we have it on
+                 * hand, and it's been known to work.
+                 */
                 conn.setRequestProperty("Referer", TRADE_URL);
 
                 // Accept compressed responses.  (We can decompress it.)
                 conn.setRequestProperty("Accept-Encoding", "gzip,deflate");
 
                 if (ajax) {
-                    conn.setRequestProperty("X-Requested-With", "XMLHttpRequest");
+                    conn.setRequestProperty("X-Requested-With",
+                            "XMLHttpRequest");
                     conn.setRequestProperty("X-Prototype-Version", "1.7");
                 }
 
@@ -894,7 +943,8 @@ class ContextScraper {
 
                 if (input.startsWith("var g_rgAppContextData")) {
                     // Extract the JSON string from the JavaScript source.  Bleh
-                    return parseContextData(input.substring(input.indexOf('{'), input.length() - 1));
+                    return parseContextData(input.substring(input.indexOf('{'),
+                            input.length() - 1));
                 }
             }
         } catch (IOException ex) {

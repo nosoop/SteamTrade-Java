@@ -24,8 +24,8 @@ public abstract class TradeInternalAsset {
      */
     String name;
     /**
-     * The name it would be grouped under in the Steam Community Market. Is
-     * an empty string if not in the Market.
+     * The name it would be grouped under in the Steam Community Market. Is an
+     * empty string if not in the Market.
      */
     String marketName;
     /**
@@ -49,9 +49,14 @@ public abstract class TradeInternalAsset {
     /**
      * Creates a new TradeInternalAsset instance.
      *
-     * @param rgInventoryItem
-     * @param rgDescriptionItem
-     * @throws JSONException
+     * @param rgInventoryItem This asset's member JSONObject of "rgInventory" or
+     * "rgCurrency".
+     * @param rgDescriptionItem This asset's member JSONObject of
+     * "rgDescription".
+     * @throws JSONException when the values with names "name", "market_name",
+     * "type", "classid", or "appid" are not found in the rgDescriptionItem
+     * member object and/or when "classid", "amount", or "id" are not found in
+     * the rgInventory or rgCurrency member object.
      */
     TradeInternalAsset(AppContextPair appContext, JSONObject rgInventoryItem,
             JSONObject rgDescriptionItem) throws JSONException {
@@ -81,7 +86,7 @@ public abstract class TradeInternalAsset {
          * Assert that the classid matches rgDescription and rgCurrency or
          * rgInventory by hash.
          */
-        String descriptionClassidString = 
+        String descriptionClassidString =
                 rgDescriptionItem.getString("classid");
         assert (descriptionClassidString.equals(classidString));
     }
@@ -174,8 +179,8 @@ public abstract class TradeInternalAsset {
     /**
      * Returns the type of this asset.
      *
-     * @return The amount of this asset, defined by the "type"-named
-     * name-value pair of the asset's "rgDescription" JSONObject member entry
+     * @return The amount of this asset, defined by the "type"-named name-value
+     * pair of the asset's "rgDescription" JSONObject member entry
      */
     public final String getType() {
         return type;

@@ -8,7 +8,8 @@ import java.util.Map;
 
 /**
  * Represents a user's collection of game inventories, retrievable by the
- * inventory-specific appid and contextid.
+ * inventory-specific appid and contextid. Also holds a varied list of
+ * AssetBuilders to be used to load certain inventories.
  *
  * @author nosoop
  */

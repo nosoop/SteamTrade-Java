@@ -14,7 +14,9 @@ public class TradeInternalItem extends TradeInternalAsset {
     long instanceid;
     boolean stackable;
 
-    public TradeInternalItem(AppContextPair appContext, JSONObject rgInventoryItem, JSONObject rgDescriptionItem) throws JSONException {
+    public TradeInternalItem(AppContextPair appContext, 
+            JSONObject rgInventoryItem, JSONObject rgDescriptionItem) 
+            throws JSONException {
         super(appContext, rgInventoryItem, rgDescriptionItem);
 
         this.instanceid =

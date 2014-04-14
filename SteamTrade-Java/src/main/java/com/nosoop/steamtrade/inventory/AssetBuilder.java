@@ -16,8 +16,7 @@ import bundled.steamtrade.org.json.JSONObject;
 public abstract class AssetBuilder {
     /**
      * Determines whether or not this AssetBuilder instance should handle
-     * loading a given inventory. For subclassed AssetBuilders, override this
-     * method.
+     * loading a given inventory.
      *
      * @param appContext An appid-contextid pair for an inventory.
      * @return Whether or not this AssetBuilder instance should handle the

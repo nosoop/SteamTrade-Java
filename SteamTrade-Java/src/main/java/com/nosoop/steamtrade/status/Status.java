@@ -44,7 +44,8 @@ public class Status {
 
                 if (statusEvents != null) {
                     for (int i = 0; i < statusEvents.length(); i++) {
-                        events.add(new TradeEvent(statusEvents.getJSONObject(i)));
+                        events.add(
+                                new TradeEvent(statusEvents.getJSONObject(i)));
                     }
                 }
             }
