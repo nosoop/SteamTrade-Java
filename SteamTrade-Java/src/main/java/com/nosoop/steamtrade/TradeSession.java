@@ -493,6 +493,10 @@ public class TradeSession implements Runnable {
          * A URL-decoded copy of SESSION_ID. Needed to make requests.
          */
         final String DECODED_SESSION_ID;
+        /**
+         * Quantity for an item with no transfer amount.
+         */
+        private static final int NO_TRANSFER_AMOUNT = -1;
 
         /**
          * Initializes the instance and attempts to create a URL-decoded copy of
@@ -519,7 +523,15 @@ public class TradeSession implements Runnable {
          */
         public void addItem(TradeInternalItem item, int slot) {
             addItem(item.getAppid(), item.getContextid(), item.getAssetid(),
-                    slot);
+                    slot, NO_TRANSFER_AMOUNT);
+        }
+        
+        public void addItem(TradeInternalItem item, int slot, int amount) {
+            // Assert that the item is stackable and we're using a valid amount.
+            assert(item.isStackable() && amount >= 0);
+            
+            addItem(item.getAppid(), item.getContextid(), item.getAssetid(),
+                    slot, amount);
         }
 
         /**
@@ -531,7 +543,8 @@ public class TradeSession implements Runnable {
          * @param assetid The inventory "asset", the item id.
          * @param slot The offer slot to place the item in (0~255).
          */
-        public void addItem(int appid, long contextid, long assetid, int slot) {
+        public void addItem(int appid, long contextid, long assetid, int slot,
+                int amount) {
             final Map<String, String> data = new HashMap<>();
             data.put("sessionid", DECODED_SESSION_ID);
             data.put("appid", "" + appid);
@@ -539,6 +552,10 @@ public class TradeSession implements Runnable {
             data.put("itemid", "" + assetid);
             data.put("slot", "" + slot);
 
+            if (amount != NO_TRANSFER_AMOUNT) {
+                data.put("amount", "" + amount);
+            }
+            
             fetch(TRADE_URL + "additem", "POST", data);
         }
 
