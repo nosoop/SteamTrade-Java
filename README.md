@@ -22,7 +22,7 @@ Additionally, the library has extendable support via:
   * Pluggable support for game-specific items: Now you can extend the item support to, say, add WebAPI schema / inventory connectivity and handle any other items yourself (mostly; you get access to the inventory data in the scope of the asset to be loaded).
 
 Potential additions in the future include support for:
-  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  Mo amount; similar case with stackables.
+  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  No amount; similar case with stackables.
   * Inventory caching?  For card swap bots and possibly other traders, the assetid could be loaded from a previous inventory download.
 
 The three included projects are:
