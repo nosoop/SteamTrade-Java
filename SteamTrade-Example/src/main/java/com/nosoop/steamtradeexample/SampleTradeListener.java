@@ -115,15 +115,20 @@ public class SampleTradeListener extends TradeListener {
     /**
      * Called when our trading partner has added an item.
      *
-     * @param inventoryItem
+     * @param asset
      */
     @Override
-    public void onUserAddItem(TradeInternalAsset inventoryItem) {
-        trade.getCmds().sendMessage("You added a " + inventoryItem.getMarketName());
+    public void onUserAddItem(TradeInternalAsset asset) {
+        trade.getCmds().sendMessage("You added a " + asset.getMarketName());
 
-        if (inventoryItem instanceof TradeInternalItem) {
-            TradeInternalItem item = (TradeInternalItem) inventoryItem;
-            System.out.println(item.getName());
+        if (asset instanceof TradeInternalItem) {
+            TradeInternalItem item = (TradeInternalItem) asset;
+            System.out.println("User added " + item.getName());
+        } else if (asset instanceof TradeInternalCurrency) {
+            // Grabbing added currency amount.
+            TradeInternalCurrency currency = (TradeInternalCurrency) asset;
+            System.out.printf("User added %d %s.%n", 
+                    currency.getTradedAmount(), asset.getDisplayName());
         }
     }
 
