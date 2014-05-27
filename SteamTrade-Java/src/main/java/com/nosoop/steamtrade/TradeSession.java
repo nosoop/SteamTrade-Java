@@ -337,7 +337,7 @@ public class TradeSession implements Runnable {
         if (!isBot) {
             /**
              * If this is the other user and we don't have their inventory yet,
-             * then we will load it.
+             * then we will load it and set the amount of stuff added..
              *
              * Keep loading the rest of the partial inventory until the item is
              * found.
@@ -347,11 +347,18 @@ public class TradeSession implements Runnable {
             do {
                 userInv = API.loadForeignInventory(
                         new AppContextPair(evt.appid, evt.contextid));
-                item = userInv.getCurrency(evt.assetid);
+                item = userInv.getCurrency(evt.currencyid);
             } while (item == null && userInv.hasMore());
 
             if (item != null) {
-                tradeListener.onUserAddItem(item);
+                int previousAmount = item.getTradedAmount();
+                item.setTradedAmount(evt.amount);
+                
+                if (previousAmount > 0 && evt.amount == 0) {
+                    tradeListener.onUserRemoveItem(item);
+                } else { 
+                    tradeListener.onUserAddItem(item);
+                }
             }
         }
 
@@ -362,6 +369,8 @@ public class TradeSession implements Runnable {
         final TradeInternalCurrency item =
                 inv.getInventory(evt.appid, evt.contextid)
                 .getCurrency(evt.currencyid);
+
+        item.setTradedAmount(evt.amount);
 
         (isBot ? TRADE_USER_SELF : TRADE_USER_PARTNER).getOffer().add(item);
     }
@@ -525,11 +534,11 @@ public class TradeSession implements Runnable {
             addItem(item.getAppid(), item.getContextid(), item.getAssetid(),
                     slot, NO_TRANSFER_AMOUNT);
         }
-        
+
         public void addItem(TradeInternalItem item, int slot, int amount) {
             // Assert that the item is stackable and we're using a valid amount.
-            assert(item.isStackable() && amount >= 0);
-            
+            assert (item.isStackable() && amount >= 0);
+
             addItem(item.getAppid(), item.getContextid(), item.getAssetid(),
                     slot, amount);
         }
@@ -555,7 +564,7 @@ public class TradeSession implements Runnable {
             if (amount != NO_TRANSFER_AMOUNT) {
                 data.put("amount", "" + amount);
             }
-            
+
             fetch(TRADE_URL + "additem", "POST", data);
         }
 
@@ -790,11 +799,6 @@ public class TradeSession implements Runnable {
                                 .append("=").append(
                                 URLEncoder.encode(entry.getValue(), "UTF-8"))
                                 .append("&");
-                        /**
-                         * dataString += URLEncoder.encode( entry.getKey(),
-                         * "UTF-8") + "=" + URLEncoder.encode( entry.getValue(),
-                         * "UTF-8") + "&";
-                         */
                     }
                 }
                 dataString = dataStringBuffer.toString();
@@ -821,6 +825,9 @@ public class TradeSession implements Runnable {
                  * Turns out we need a referer, otherwise we get an error from
                  * the server. Just use the trade URL as one since we have it on
                  * hand, and it's been known to work.
+                 *
+                 * http://steamcommunity.com/trade/1 was used for other
+                 * libraries, but having a hardcoded thing like that is gross.
                  */
                 conn.setRequestProperty("Referer", TRADE_URL);
 

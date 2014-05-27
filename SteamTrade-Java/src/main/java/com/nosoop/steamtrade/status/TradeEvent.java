@@ -11,7 +11,6 @@ import bundled.steamtrade.org.json.JSONObject;
  * @author nosoop
  */
 public class TradeEvent {
-
     public String steamid;
     public int action;
     public long timestamp;
@@ -25,7 +24,6 @@ public class TradeEvent {
     JSONObject jsonObject;
 
     public static class TradeAction {
-
         public static final int // Reference to trade action IDs
                 // Item added (itemid = "assetid")
                 ITEM_ADDED = 0,
