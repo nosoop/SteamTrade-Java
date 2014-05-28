@@ -6,6 +6,7 @@ package com.nosoop.steamtrade.status;
 
 import bundled.steamtrade.org.json.JSONException;
 import bundled.steamtrade.org.json.JSONObject;
+import com.nosoop.steamtrade.TradeListener;
 
 /**
  * @author nosoop
@@ -50,29 +51,24 @@ public class TradeEvent {
         jsonObject = event;
 
         steamid = event.getString("steamid");
-        action = Integer.parseInt(event.getString("action"));
+        action = event.optInt("action", 
+                TradeListener.TradeStatusCodes.TRADEEVENT_ACTION_MISSING);
         timestamp = event.getLong("timestamp");
         appid = event.getInt("appid");
         text = event.optString("text");
-
+        
         // contextid required for private inventory only.
-        if (event.has("contextid")) {
-            contextid = Long.valueOf(event.getString("contextid"));
-        }
+        contextid = event.optLong("contextid");
 
         // assetid required for getting item info from public inventory.
-        if (event.has("assetid")) {
-            assetid = Long.valueOf(event.getString("assetid"));
-        }
+        assetid = event.optLong("assetid");
 
-        // amount required when dealing in currency
-        if (event.has("amount")) {
-            amount = Integer.parseInt(event.getString("amount"));
-        }
+        // Amount is required when dealing in currency
+        amount = event.optInt("amount", 1);
 
-        if (event.has("currencyid")) {
-            currencyid = Long.parseLong(event.getString("currencyid"));
-        }
+        // Currency ID is also required when dealing in currency.
+        // Might not be available.
+        currencyid = event.optLong("currencyid");
     }
 
     public JSONObject getJSONObject() {

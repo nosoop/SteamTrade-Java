@@ -33,9 +33,8 @@ public class Status {
             if (trade_status == TradeStatusCodes.STATUS_OK) {
                 newversion = obj.getBoolean("newversion");
                 version = obj.getInt("version");
-                if (obj.has("logpos")) {
-                    logpos = obj.getInt("logpos");
-                }
+                
+                logpos = obj.optInt("logpos");
 
                 me = new TradeUserStatus(obj.getJSONObject("me"));
                 them = new TradeUserStatus(obj.getJSONObject("them"));

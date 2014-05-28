@@ -145,6 +145,25 @@ public class TradeSession implements Runnable {
                 }
                 tradeListener.onTradeClosed();
             }
+            
+            if (status.trade_status == TradeStatusCodes.TRADE_COMPLETED) {
+                // Trade successful.
+                tradeListener.onTradeSuccess();
+                tradeListener.onTradeClosed();
+            } else if (status.trade_status
+                    == TradeStatusCodes.STATUS_ERRORMESSAGE) {
+                tradeListener.onError(status.trade_status, status.error);
+                tradeListener.onTradeClosed();
+            } else if (status.trade_status > 1) {
+                // Refer to TradeListener.TradeStatusCodes for known values.
+                tradeListener.onError(status.trade_status,
+                        TradeStatusCodes.EMPTY_MESSAGE);
+                tradeListener.onTradeClosed();
+            }
+            
+            if (status.trade_status != TradeStatusCodes.STATUS_OK) {
+                return;
+            }
 
             // Update version
             if (status.newversion) {
@@ -167,21 +186,6 @@ public class TradeSession implements Runnable {
 
                 tradeListener.onTimer(
                         secondsSinceLastAction, secondsSinceTradeStart);
-            }
-
-            if (status.trade_status == TradeStatusCodes.TRADE_COMPLETED) {
-                // Trade successful.
-                tradeListener.onTradeSuccess();
-                tradeListener.onTradeClosed();
-            } else if (status.trade_status
-                    == TradeStatusCodes.STATUS_ERRORMESSAGE) {
-                tradeListener.onError(status.trade_status, status.error);
-                tradeListener.onTradeClosed();
-            } else if (status.trade_status > 1) {
-                // Refer to TradeListener.TradeStatusCodes for known values.
-                tradeListener.onError(status.trade_status,
-                        TradeStatusCodes.EMPTY_MESSAGE);
-                tradeListener.onTradeClosed();
             }
 
             // Update Local Variables

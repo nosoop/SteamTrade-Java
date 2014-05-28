@@ -53,8 +53,10 @@ public abstract class TradeListener {
                 // Something happened with our own inventory loading.
                 OWN_INVENTORY_LOAD_ERROR = 1005,
                 // The item specified could not be found in the inventory.
-                USER_ITEM_NOT_FOUND = 1006;
-        public final static String EMPTY_MESSAGE = null;
+                USER_ITEM_NOT_FOUND = 1006,
+                // The event action code is missing.
+                TRADEEVENT_ACTION_MISSING = 1007;
+        public final static String EMPTY_MESSAGE = "";
     }
 
     /**
