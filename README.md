@@ -8,7 +8,7 @@ About
 -----
 
 A heavily modified fork of [Top-Cat's ScrapBank.tf project](https://github.com/Top-Cat/ScrapBank.tf/), designed to be less dependent on the project's bots and SteamKit-specific classes.  
-It does not rely on any of Valve's public-facing API for inventory loading, so there is no need for an API key.
+It does not rely on any of Valve's public-facing API for inventory loading; there is no need for an API key.
 
 The library, if you're unfamiliar with Steam trading, also supports:
   * Posting to and reading messages from trade chat
@@ -17,10 +17,12 @@ The library, if you're unfamiliar with Steam trading, also supports:
   * Knowing exactly what inventories you have (scrapes them from the page though, ewww.)
   * GZIPped responses when retrieving pages
   * Loading of large inventories as needed (Valve made it so you load 2500? items at a time, this makes it so it only loads up to whatever item the other user has put up)
+  
+Additionally, the library has extendable support via:
   * Pluggable support for game-specific items: Now you can extend the item support to, say, add WebAPI schema / inventory connectivity and handle any other items yourself (mostly; you get access to the inventory data in the scope of the asset to be loaded).
 
 Potential additions in the future include support for:
-  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  Mo amount; similar case with stackables.
+  * ~~Stackable items and currencies~~ Getting there.  Currencies are viewable now, though they will only show up by name.  No amount; similar case with stackables.
   * Inventory caching?  For card swap bots and possibly other traders, the assetid could be loaded from a previous inventory download.
 
 The three included projects are:
