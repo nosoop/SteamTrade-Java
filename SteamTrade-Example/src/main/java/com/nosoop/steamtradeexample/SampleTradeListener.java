@@ -35,7 +35,6 @@ import java.util.List;
  * @author nosoop < nosoop at users.noreply.github.com >
  */
 public class SampleTradeListener extends TradeListener {
-
     /**
      * Event fired when the trade has encountered an error.
      *
@@ -64,7 +63,7 @@ public class SampleTradeListener extends TradeListener {
             default:
                 errorMessage = "Unhandled error code " + errorCode + ".";
         }
-        
+
         if (!msg.equals(TradeStatusCodes.EMPTY_MESSAGE)) {
             errorMessage += " (" + msg + ")";
         }
@@ -127,8 +126,13 @@ public class SampleTradeListener extends TradeListener {
         } else if (asset instanceof TradeInternalCurrency) {
             // Grabbing added currency amount.
             TradeInternalCurrency currency = (TradeInternalCurrency) asset;
-            System.out.printf("User added %d %s.%n", 
+            System.out.printf("User added %d %s.%n",
                     currency.getTradedAmount(), asset.getDisplayName());
+        }
+
+        for (TradeInternalAsset.Description d : asset.getDescriptions()) {
+            System.out.printf("%s / %d / %s%n", d.getType(), d.getColor().getRGB(),
+                    d.getValue());
         }
     }
 
@@ -173,8 +177,9 @@ public class SampleTradeListener extends TradeListener {
     public void onUserSetReadyState(boolean ready) {
         System.out.println("User is ready: " + ready);
 
-        if (Math.random() < .5)
+        if (Math.random() < .5) {
             trade.getCmds().setReady(!ready);
+        }
     }
 
     /**
@@ -184,7 +189,7 @@ public class SampleTradeListener extends TradeListener {
     @Override
     public void onUserAccept() {
         trade.getCmds().sendMessage("Hah. Nope. Cancelled.");
-        
+
         // TODO Handle JSONException in the library.
         try {
             trade.getCmds().cancelTrade();
