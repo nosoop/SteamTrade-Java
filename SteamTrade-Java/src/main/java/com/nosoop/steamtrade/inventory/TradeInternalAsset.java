@@ -4,8 +4,12 @@
  */
 package com.nosoop.steamtrade.inventory;
 
+import bundled.steamtrade.org.json.JSONArray;
 import bundled.steamtrade.org.json.JSONException;
 import bundled.steamtrade.org.json.JSONObject;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a generic, tradable asset and its basic characteristics.
@@ -45,6 +49,10 @@ public abstract class TradeInternalAsset {
      * The item id number.
      */
     long assetid;
+    /**
+     * List of description instances.
+     */
+    List<Description> descriptions;
 
     /**
      * Creates a new TradeInternalAsset instance.
@@ -72,7 +80,16 @@ public abstract class TradeInternalAsset {
 
         this.amount = Integer.parseInt(
                 rgInventoryItem.optString("amount", "1"));
-        this.assetid = Long.parseLong(rgInventoryItem.getString("id"));;
+        this.assetid = Long.parseLong(rgInventoryItem.getString("id"));
+
+        this.descriptions = new ArrayList<>();
+
+        JSONArray dsArr = rgDescriptionItem.optJSONArray("descriptions");
+        if (dsArr != null) {
+            for (int i = 0; i < dsArr.length(); i++) {
+                this.descriptions.add(new Description(dsArr.getJSONObject(i)));
+            }
+        }
 
         /**
          * Verify that the input appid is the same appid passed in the
@@ -185,4 +202,36 @@ public abstract class TradeInternalAsset {
     public final String getType() {
         return type;
     }
+
+    public final List<Description> getDescriptions() {
+        return descriptions;
+    }
+
+    public static class Description {
+        final String type;
+        final String value;
+        final Color color;
+
+        private Description(JSONObject descriptions) throws JSONException {
+            type = descriptions.optString("type", "text");
+            value = descriptions.getString("value");
+
+            String hexColor = descriptions.optString("color", "000000");
+
+            color = new Color(Integer.parseInt(hexColor, 16));
+        }
+
+        public Color getColor() {
+            return color;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getType() {
+            return type;
+        }
+    }
+
 }

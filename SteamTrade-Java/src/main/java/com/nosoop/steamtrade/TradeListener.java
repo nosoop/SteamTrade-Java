@@ -69,9 +69,8 @@ public abstract class TradeListener {
      * will default to TradeStatusCodes.EMPTY_MESSAGE.
      */
     public abstract void onError(int errorCode, String errorMessage);
-    
-    // TODO implement onException, create TradeException?
 
+    // TODO implement onException, create TradeException?
     /**
      * Called when the client polls the trade. If you want to warn the other
      * person for taking too long, implement this method and add a cancel.
@@ -84,7 +83,8 @@ public abstract class TradeListener {
     public abstract void onTimer(int secondsSinceAction, int secondsSinceTrade);
 
     /**
-     * Called when the trade has opened.
+     * Called when the listener is connected to a trade. Things that depend on
+     * trade session information can be assigned here. Or say a welcome message.
      */
     public abstract void onWelcome();
 
